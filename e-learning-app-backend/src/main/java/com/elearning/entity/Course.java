@@ -49,8 +49,9 @@ public class Course {
     private Category category;
 
     @Enumerated(EnumType.STRING)
-    @Column(columnDefinition = "course_status DEFAULT 'draft'")
+    @Column(columnDefinition = "VARCHAR(50) DEFAULT 'draft'")
     private CourseStatus status;
+
 
     @Lob
     @Column(name = "video_preview_url", columnDefinition = "TEXT")

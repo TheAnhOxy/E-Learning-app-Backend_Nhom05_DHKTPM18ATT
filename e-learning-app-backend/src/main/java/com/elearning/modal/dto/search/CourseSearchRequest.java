@@ -10,7 +10,7 @@ public class CourseSearchRequest {
     private Integer instructorId;
     private CourseStatus status;
 
-
-     private int page = 0;
-     private int size = 10;
+//
+//     private int page = 0;
+//     private int size = 10;
 }

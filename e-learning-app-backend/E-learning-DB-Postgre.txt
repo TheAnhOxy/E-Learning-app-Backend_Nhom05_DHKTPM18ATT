@@ -1,247 +1,255 @@
--- ======================================================
--- E-LEARNING DB - FULL + CLEAN + ID TỪ 1 (v2.0)
--- ĐÃ BỔ SUNG: transactions, quiz_attempts, user_answers, activity_logs
--- ĐÃ BỔ SUNG: Spring Boot, React Native, Figma + Failed Cases
--- ĐÃ BỎ: rating_avg, rating_count, lesson_count
--- ======================================================
+CREATE DATABASE IF NOT EXISTS elearningdb
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
 
--- XÓA TẤT CẢ BẢNG VÀ ENUM
-DROP TABLE IF EXISTS notifications CASCADE;
-DROP TABLE IF EXISTS activity_logs CASCADE;
-DROP TABLE IF EXISTS certificates CASCADE;
-DROP TABLE IF EXISTS user_answers CASCADE;
-DROP TABLE IF EXISTS quiz_attempts CASCADE;
-DROP TABLE IF EXISTS answers CASCADE;
-DROP TABLE IF EXISTS questions CASCADE;
-DROP TABLE IF EXISTS quizzes CASCADE;
-DROP TABLE IF EXISTS reviews CASCADE;
-DROP TABLE IF EXISTS progress CASCADE;
-DROP TABLE IF EXISTS transactions CASCADE;
-DROP TABLE IF EXISTS orders CASCADE;
-DROP TABLE IF EXISTS enrollments CASCADE;
-DROP TABLE IF EXISTS lessons CASCADE; 
-DROP TABLE IF EXISTS sections CASCADE;
-DROP TABLE IF EXISTS courses CASCADE;
-DROP TABLE IF EXISTS categories CASCADE;
-DROP TABLE IF EXISTS users CASCADE;
+USE elearningdb;
 
-DROP TYPE IF EXISTS user_role;
-DROP TYPE IF EXISTS course_status;
-DROP TYPE IF EXISTS order_status;
-DROP TYPE IF EXISTS transaction_status;
-DROP TYPE IF EXISTS question_type;
+-- XÓA TẤT CẢ BẢNG (Thứ tự ngược để đảm bảo khóa ngoại)
+DROP TABLE IF EXISTS notifications;
+DROP TABLE IF EXISTS activity_logs;
+DROP TABLE IF EXISTS certificates;
+DROP TABLE IF EXISTS user_answers;
+DROP TABLE IF EXISTS quiz_attempts;
+DROP TABLE IF EXISTS answers;
+DROP TABLE IF EXISTS questions;
+DROP TABLE IF EXISTS quizzes;
+DROP TABLE IF EXISTS reviews;
+DROP TABLE IF EXISTS progress;
+DROP TABLE IF EXISTS enrollments;
+DROP TABLE IF EXISTS transactions;
+DROP TABLE IF EXISTS orders;
+DROP TABLE IF EXISTS lessons; 
+DROP TABLE IF EXISTS sections;
+DROP TABLE IF EXISTS courses;
+DROP TABLE IF EXISTS categories;
+DROP TABLE IF EXISTS users;
 
 -- ======================================================
--- ENUM
--- ======================================================
-CREATE TYPE user_role AS ENUM ('student', 'instructor', 'admin');
-CREATE TYPE course_status AS ENUM ('draft', 'pending_approval', 'published');
-CREATE TYPE order_status AS ENUM ('pending', 'completed', 'failed');
-CREATE TYPE transaction_status AS ENUM ('success', 'failed', 'pending');
-CREATE TYPE question_type AS ENUM ('single_choice', 'multiple_choice');
-
--- ======================================================
--- BẢNG CHÍNH
+-- BẢNG CHÍNH (Đã chuyển sang cú pháp MySQL)
 -- ======================================================
 
 -- USERS
 CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) UNIQUE,
     full_name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    role user_role NOT NULL DEFAULT 'student',
+    `role` ENUM('student', 'instructor', 'admin') NOT NULL DEFAULT 'student',
     avatar_url TEXT,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)
 );
 
 -- CATEGORIES
 CREATE TABLE categories (
-    id SERIAL PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) UNIQUE NOT NULL,
     image_url TEXT,
     icon_name VARCHAR(50),
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6)
 );
 
 -- COURSES
 CREATE TABLE courses (
-    id SERIAL PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     description TEXT,
     thumbnail_url TEXT,
-    price INTEGER DEFAULT 0,
-    original_price INTEGER DEFAULT 0,
-    instructor_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-    category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
-    status course_status DEFAULT 'draft',
+    price INT DEFAULT 0,
+    original_price INT DEFAULT 0,
+    instructor_id INT,
+    category_id INT,
+    status ENUM('draft', 'pending_approval', 'published') DEFAULT 'draft',
     video_preview_url TEXT,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    FOREIGN KEY (instructor_id) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
 );
 
 -- SECTIONS
 CREATE TABLE sections (
-    id SERIAL PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
-    course_id INTEGER REFERENCES courses(id) ON DELETE CASCADE,
-    order_index INTEGER DEFAULT 0,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    course_id INT,
+    order_index INT DEFAULT 0,
+    created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
 );
 
 -- LESSONS
 CREATE TABLE lessons (
-    id SERIAL PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
-    section_id INTEGER REFERENCES sections(id) ON DELETE CASCADE,
+    section_id INT,
     provider VARCHAR(50),
     provider_video_id VARCHAR(255),
     playback_url TEXT,
     video_description TEXT,
-    duration_in_seconds INTEGER DEFAULT 0,
+    duration_in_seconds INT DEFAULT 0,
     thumbnail_url TEXT,
     views_count BIGINT DEFAULT 0,
     video_preview_url TEXT,    
     is_free BOOLEAN DEFAULT false,
-    order_index INTEGER DEFAULT 0,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    order_index INT DEFAULT 0,
+    created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
+    updated_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    FOREIGN KEY (section_id) REFERENCES sections(id) ON DELETE CASCADE
 );
 
 -- ORDERS
 CREATE TABLE orders (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    course_id INTEGER REFERENCES courses(id) ON DELETE CASCADE,
-    amount INTEGER NOT NULL,
-    status order_status DEFAULT 'pending',
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    course_id INT,
+    amount INT NOT NULL,
+    status ENUM('pending', 'completed', 'failed') DEFAULT 'pending',
+    created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
 );
 
 -- ENROLLMENTS
 CREATE TABLE enrollments (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    course_id INTEGER REFERENCES courses(id) ON DELETE CASCADE,
-    enrollment_date TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    order_id INTEGER REFERENCES orders(id) ON DELETE SET NULL,
-    UNIQUE(user_id, course_id)
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    course_id INT,
+    enrollment_date DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
+    order_id INT,
+    UNIQUE(user_id, course_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE SET NULL
 );
 
 -- PROGRESS
 CREATE TABLE progress (
-    id SERIAL PRIMARY KEY,
-    enrollment_id INTEGER REFERENCES enrollments(id) ON DELETE CASCADE,
-    lesson_id INTEGER REFERENCES lessons(id) ON DELETE CASCADE,
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    enrollment_id INT,
+    lesson_id INT,
     is_completed BOOLEAN DEFAULT false,
-    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(enrollment_id, lesson_id)
+    updated_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    UNIQUE(enrollment_id, lesson_id),
+    FOREIGN KEY (enrollment_id) REFERENCES enrollments(id) ON DELETE CASCADE,
+    FOREIGN KEY (lesson_id) REFERENCES lessons(id) ON DELETE CASCADE
 );
 
 -- REVIEWS
 CREATE TABLE reviews (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    course_id INTEGER REFERENCES courses(id) ON DELETE CASCADE,
-    rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    course_id INT,
+    rating INT NOT NULL CHECK (rating BETWEEN 1 AND 5),
     comment TEXT,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(user_id, course_id)
+    created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
+    UNIQUE(user_id, course_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
 );
 
--- QUIZ
+-- QUIZZES
 CREATE TABLE quizzes (
-    id SERIAL PRIMARY KEY,
-    lesson_id INTEGER REFERENCES lessons(id) ON DELETE CASCADE,
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    lesson_id INT,
     title VARCHAR(255) NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
+    FOREIGN KEY (lesson_id) REFERENCES lessons(id) ON DELETE CASCADE
 );
 
+-- QUESTIONS
 CREATE TABLE questions (
-    id SERIAL PRIMARY KEY,
-    quiz_id INTEGER REFERENCES quizzes(id) ON DELETE CASCADE,
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    quiz_id INT,
     question_text TEXT NOT NULL,
-    question_type question_type NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    question_type ENUM('single_choice', 'multiple_choice') NOT NULL,
+    created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
+    FOREIGN KEY (quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE
 );
 
+-- ANSWERS
 CREATE TABLE answers (
-    id SERIAL PRIMARY KEY,
-    question_id INTEGER REFERENCES questions(id) ON DELETE CASCADE,
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    question_id INT,
     answer_text TEXT NOT NULL,
     is_correct BOOLEAN DEFAULT false,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
+    FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
 );
 
 -- CERTIFICATES
 CREATE TABLE certificates (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    course_id INTEGER REFERENCES courses(id) ON DELETE CASCADE,
-    issue_date TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    certificate_code VARCHAR(255) UNIQUE NOT NULL
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    course_id INT,
+    issue_date DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
+    certificate_code VARCHAR(255) UNIQUE NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
 );
 
 -- NOTIFICATIONS
 CREATE TABLE notifications (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
     title VARCHAR(255) NOT NULL,
     message TEXT,
     is_read BOOLEAN DEFAULT false,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- ======================================================
--- BỔ SUNG 4 BẢNG MỚI
--- ======================================================
-
--- 1. TRANSACTIONS
+-- TRANSACTIONS
 CREATE TABLE transactions (
-    id SERIAL PRIMARY KEY,
-    order_id INTEGER REFERENCES orders(id) ON DELETE CASCADE,
-    amount INTEGER NOT NULL,
-    status transaction_status NOT NULL DEFAULT 'pending',
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT,
+    amount INT NOT NULL,
+    status ENUM('success', 'failed', 'pending') NOT NULL DEFAULT 'pending',
     payment_method VARCHAR(50),
     transaction_code VARCHAR(100) UNIQUE,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
 );
 
--- 2. QUIZ_ATTEMPTS
+-- QUIZ_ATTEMPTS
 CREATE TABLE quiz_attempts (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    quiz_id INTEGER REFERENCES quizzes(id) ON DELETE CASCADE,
-    score INTEGER DEFAULT 0,
-    total_questions INTEGER DEFAULT 0,
-    completed_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(user_id, quiz_id, completed_at)
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    quiz_id INT,
+    score INT DEFAULT 0,
+    total_questions INT DEFAULT 0,
+    completed_at DATETIME(6),
+    created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
+    UNIQUE(user_id, quiz_id, completed_at),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE
 );
 
--- 3. USER_ANSWERS
+-- USER_ANSWERS
 CREATE TABLE user_answers (
-    id SERIAL PRIMARY KEY,
-    quiz_attempt_id INTEGER REFERENCES quiz_attempts(id) ON DELETE CASCADE,
-    question_id INTEGER REFERENCES questions(id) ON DELETE CASCADE,
-    answer_id INTEGER REFERENCES answers(id) ON DELETE SET NULL,
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    quiz_attempt_id INT,
+    question_id INT,
+    answer_id INT,
     is_correct BOOLEAN DEFAULT false,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
+    FOREIGN KEY (quiz_attempt_id) REFERENCES quiz_attempts(id) ON DELETE CASCADE,
+    FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE,
+    FOREIGN KEY (answer_id) REFERENCES answers(id) ON DELETE SET NULL
 );
 
--- 4. ACTIVITY_LOGS
+-- ACTIVITY_LOGS
 CREATE TABLE activity_logs (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-    action VARCHAR(100) NOT NULL,
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    `action` VARCHAR(100) NOT NULL,
     entity_type VARCHAR(50),
-    entity_id INTEGER,
+    entity_id INT,
     description TEXT,
     ip_address VARCHAR(45),
     user_agent TEXT,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
 -- ======================================================
@@ -257,204 +265,204 @@ CREATE INDEX idx_quiz_attempts_user ON quiz_attempts(user_id);
 CREATE INDEX idx_quiz_attempts_quiz ON quiz_attempts(quiz_id);
 CREATE INDEX idx_user_answers_attempt ON user_answers(quiz_attempt_id);
 CREATE INDEX idx_activity_logs_user ON activity_logs(user_id);
-CREATE INDEX idx_activity_logs_action ON activity_logs(action);
+CREATE INDEX idx_activity_logs_action ON activity_logs(`action`);
 
 -- ======================================================
--- DỮ LIỆU MẪU (TỪ ID 1)
+-- DỮ LIỆU MẪU (Đã bỏ Timezone +07)
 -- ======================================================
 
--- USERS (ID 1-11)
-INSERT INTO users (id, username, full_name, email, password_hash, role, avatar_url, created_at) VALUES
-(1, 'student01', 'Nguyễn Văn A', 'a@gmail.com', '$2a$12$hash01', 'student', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761704109/avatar1_k4i2wd.jpg', '2025-09-01 08:00:00+07'),
-(2, 'teacher01', 'Trần Thị B', 'b@gmail.com', '$2a$12$hash02', 'instructor', 'https://images.unsplash.com/photo-1544005313-94ddf0286df2', '2025-09-01 09:00:00+07'),
-(3, 'admin01', 'Admin Hệ Thống', 'admin@gmail.com', '$2a$12$hash03', 'admin', 'https://via.placeholder.com/50', '2025-09-01 10:00:00+07'),
-(4, 'teacher02', 'Lê Văn C', 'c@gmail.com', '$2a$12$hash04', 'instructor', 'https://images.unsplash.com/photo-1502764613149-7f1d229e230f', '2025-09-02 08:30:00+07'),
-(5, 'teacher03', 'Phạm Thị D', 'd@gmail.com', '$2a$12$hash05', 'instructor', 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e', '2025-09-02 09:30:00+07'),
-(6, 'teacher04', 'Ngô Văn E', 'e@gmail.com', '$2a$12$hash06', 'instructor', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb', '2025-09-02 10:30:00+07'),
-(7, 'teacher05', 'Đỗ Thị F', 'f@gmail.com', '$2a$12$hash07', 'instructor', 'https://images.unsplash.com/photo-1552058544-f2b08422138a', '2025-09-03 08:00:00+07'),
-(8, 'teacher06', 'Vũ Văn G', 'g@gmail.com', '$2a$12$hash08', 'instructor', 'https://images.unsplash.com/photo-1552058544-f2b08422138a', '2025-09-03 09:00:00+07'),
-(9, 'reviewer01', 'Jinny Oslin', 'jinny@example.com', '$2a$12$hash09', 'student', 'https://randomuser.me/api/portraits/women/44.jpg', '2025-09-04 10:00:00+07'),
-(10, 'reviewer02', 'Jane Barry', 'jane@example.com', '$2a$12$hash10', 'student', 'https://randomuser.me/api/portraits/women/45.jpg', '2025-09-04 11:00:00+07'),
-(11, 'reviewer03', 'Claire Mignard', 'claire@example.com', '$2a$12$hash11', 'student', 'https://randomuser.me/api/portraits/women/46.jpg', '2025-09-04 12:00:00+07');
+-- USERS
+INSERT INTO users (id, username, full_name, email, password_hash, `role`, avatar_url, created_at) VALUES
+(1, 'student01', 'Nguyễn Văn A', 'a@gmail.com', '$2a$12$hash01', 'student', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761704109/avatar1_k4i2wd.jpg', '2025-09-01 08:00:00'),
+(2, 'teacher01', 'Trần Thị B', 'b@gmail.com', '$2a$12$hash02', 'instructor', 'https://images.unsplash.com/photo-1544005313-94ddf0286df2', '2025-09-01 09:00:00'),
+(3, 'admin01', 'Admin Hệ Thống', 'admin@gmail.com', '$2a$12$hash03', 'admin', 'https://via.placeholder.com/50', '2025-09-01 10:00:00'),
+(4, 'teacher02', 'Lê Văn C', 'c@gmail.com', '$2a$12$hash04', 'instructor', 'https://images.unsplash.com/photo-1502764613149-7f1d229e230f', '2025-09-02 08:30:00'),
+(5, 'teacher03', 'Phạm Thị D', 'd@gmail.com', '$2a$12$hash05', 'instructor', 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e', '2025-09-02 09:30:00'),
+(6, 'teacher04', 'Ngô Văn E', 'e@gmail.com', '$2a$12$hash06', 'instructor', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb', '2025-09-02 10:30:00'),
+(7, 'teacher05', 'Đỗ Thị F', 'f@gmail.com', '$2a$12$hash07', 'instructor', 'https://images.unsplash.com/photo-1552058544-f2b08422138a', '2025-09-03 08:00:00'),
+(8, 'teacher06', 'Vũ Văn G', 'g@gmail.com', '$2a$12$hash08', 'instructor', 'https://images.unsplash.com/photo-1552058544-f2b08422138a', '2025-09-03 09:00:00'),
+(9, 'reviewer01', 'Jinny Oslin', 'jinny@example.com', '$2a$12$hash09', 'student', 'https://randomuser.me/api/portraits/women/44.jpg', '2025-09-04 10:00:00'),
+(10, 'reviewer02', 'Jane Barry', 'jane@example.com', '$2a$12$hash10', 'student', 'https://randomuser.me/api/portraits/women/45.jpg', '2025-09-04 11:00:00'),
+(11, 'reviewer03', 'Claire Mignard', 'claire@example.com', '$2a$12$hash11', 'student', 'https://randomuser.me/api/portraits/women/46.jpg', '2025-09-04 12:00:00');
 
--- CATEGORIES (ID 1-8)
+-- CATEGORIES
 INSERT INTO categories (id, name, image_url, icon_name, created_at) VALUES
-(1, 'Lập trình', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761539286/3121615_kuetvc.png', 'code-slash-outline', '2025-09-05 09:00:00+07'),
-(2, 'Thiết kế', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761539624/design-thinking_rx6qlo.png', 'color-palette-outline', '2025-09-05 09:05:00+07'),
-(3, 'Kinh doanh', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761539623/investment_ec28iz.png', 'trending-up-outline', '2025-09-05 09:10:00+07'),
-(4, 'Viết', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761539622/1055688_uec36y.png', 'create-outline', '2025-09-05 09:15:00+07'),
-(5, 'Phim', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761539621/clapperboard_y3cm1q.png', 'videocam-outline', '2025-09-05 09:20:00+07'),
-(6, 'Ngôn ngữ', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761538850/languages_xzinde.png', 'language-outline', '2025-09-05 09:25:00+07'),
-(7, 'Category7', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761539772/app_lhykbl.png', 'list-outline', '2025-09-05 09:30:00+07'),
-(8, 'Category8', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761539772/app_lhykbl.png', 'list-outline', '2025-09-05 09:35:00+07');
+(1, 'Lập trình', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761539286/3121615_kuetvc.png', 'code-slash-outline', '2025-09-05 09:00:00'),
+(2, 'Thiết kế', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761539624/design-thinking_rx6qlo.png', 'color-palette-outline', '2025-09-05 09:05:00'),
+(3, 'Kinh doanh', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761539623/investment_ec28iz.png', 'trending-up-outline', '2025-09-05 09:10:00'),
+(4, 'Viết', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761539622/1055688_uec36y.png', 'create-outline', '2025-09-05 09:15:00'),
+(5, 'Phim', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761539621/clapperboard_y3cm1q.png', 'videocam-outline', '2025-09-05 09:20:00'),
+(6, 'Ngôn ngữ', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761538850/languages_xzinde.png', 'language-outline', '2025-09-05 09:25:00'),
+(7, 'Category7', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761539772/app_lhykbl.png', 'list-outline', '2025-09-05 09:30:00'),
+(8, 'Category8', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761539772/app_lhykbl.png', 'list-outline', '2025-09-05 09:35:00');
 
--- COURSES (ID 1-14)
+-- COURSES
 INSERT INTO courses (id, title, description, thumbnail_url, price, original_price, instructor_id, category_id, status, video_preview_url, created_at, updated_at) VALUES
-(1, 'React Native cho người mới', 'Khóa học này giới thiệu những nguyên tắc cơ bản...', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761544374/Gemini_Generated_Image_yf0chyf0chyf0chy_dqfwph.png', 0, 0, 2, 1, 'published', 'https://res.cloudinary.com/dwzjxsdli/video/upload/v1761573788/React_Beginner_m5v2jh.mp4', '2025-09-06 10:00:00+07', '2025-10-01 15:00:00+07'),
-(2, 'PHP in One Click', 'Nắm vững PHP và MySQL...', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761544371/Gemini_Generated_Image_yf0chyf0chyf0chy_1_wtmrau.png', 59000, 75000, 2, 1, 'published', 'https://www.w3schools.com/html/mov_bbb.mp4', '2025-09-07 10:00:00+07', '2025-10-01 15:00:00+07'),
-(3, 'Python Introductory', 'Khóa học nhập môn Python...', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761544375/Gemini_Generated_Image_yf0chyf0chyf0chy_2_h9wxs1.png', 39000, 50000, 2, 1, 'published', 'https://www.w3schools.com/html/mov_bbb.mp4', '2025-09-08 10:00:00+07', '2025-10-01 15:00:00+07'),
-(4, 'Website Design', 'Thiết kế website chuyên nghiệp', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761544376/Gemini_Generated_Image_yf0chyf0chyf0chy_3_bezddq.png', 49000, 60000, 2, 2, 'published', 'https://www.w3schools.com/html/mov_bbb.mp4', '2025-09-09 10:00:00+07', '2025-10-01 15:00:00+07'),
-(5, 'UX Research For...', 'Khám phá các phương pháp...', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761544370/Gemini_Generated_Image_yf0chyf0chyf0chy_4_v5uocw.png', 29000, 35000, 2, 2, 'published', 'https://www.w3schools.com/html/mov_bbb.mp4', '2025-09-10 10:00:00+07', '2025-10-01 15:00:00+07'),
-(6, 'Digital Portrait', 'Vẽ chân dung số', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761544373/Gemini_Generated_Image_3s76wn3s76wn3s76_w1sain.png', 67000, 80000, 2, 2, 'published', 'https://www.w3schools.com/html/mov_bbb.mp4', '2025-09-11 10:00:00+07', '2025-10-01 15:00:00+07'),
-(7, 'Workspace Decor', 'Trang trí không gian làm việc', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761544373/Gemini_Generated_Image_3s76wn3s76wn3s76_1_xfg3cg.png', 19000, 25000, 2, 2, 'published', 'https://www.w3schools.com/html/mov_bbb.mp4', '2025-09-12 10:00:00+07', '2025-10-01 15:00:00+07'),
-(8, 'Packaging Design', 'Thiết kế bao bì sáng tạo', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761544372/Gemini_Generated_Image_3s76wn3s76wn3s76_2_innqrz.png', 89000, 100000, 2, 2, 'published', 'https://www.w3schools.com/html/mov_bbb.mp4', '2025-09-13 10:00:00+07', '2025-10-01 15:00:00+07'),
-(9, 'Khóa học Spring Boot Toàn Tập', 'Từ cơ bản đến nâng cao về Spring Boot.', 'https://example.com/spring.jpg', 599000, 699000, 2, 1, 'published', 'https://www.youtube.com/watch?v=intro_springboot', '2025-01-15 09:00:00+07', '2025-02-01 12:00:00+07'),
-(10, 'Khóa học React Native', 'Xây dựng app mobile đa nền tảng với React Native.', 'https://example.com/reactnative.jpg', 499000, 599000, 2, 1, 'published', 'https://www.youtube.com/watch?v=intro_reactnative', '2025-02-01 09:00:00+07', '2025-02-10 10:00:00+07'),
-(11, 'Thiết kế UI/UX với Figma', 'Khóa học hướng dẫn thiết kế chuyên nghiệp với Figma.', 'https://example.com/figma.jpg', 399000, 499000, 2, 2, 'published', 'https://www.youtube.com/watch?v=intro_figma', '2025-02-05 09:30:00+07', '2025-02-12 08:45:00+07'),
-(12, 'Khóa học Spring Boot Toàn Tập', 'Từ cơ bản đến nâng cao về Spring Boot.', 'https://example.com/spring.jpg', 599000, 750000, 2, 1, 'published', 'https://www.youtube.com/watch?v=intro_springboot', '2025-01-15 09:00:00+07', '2025-02-01 12:00:00+07'),
-(13, 'Khóa học React Native', 'Xây dựng app mobile đa nền tảng với React Native.', 'https://example.com/reactnative.jpg', 499000, 650000, 2, 1, 'published', 'https://www.youtube.com/watch?v=intro_reactnative', '2025-02-01 09:00:00+07', '2025-02-10 10:00:00+07'),
-(14, 'Thiết kế UI/UX với Figma', 'Khóa học hướng dẫn thiết kế chuyên nghiệp với Figma.', 'https://example.com/figma.jpg', 399000, 500000, 2, 2, 'published', 'https://www.youtube.com/watch?v=intro_figma', '2025-02-05 09:30:00+07', '2025-02-12 08:45:00+07');
+(1, 'React Native cho người mới', 'Khóa học này giới thiệu những nguyên tắc cơ bản...', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761544374/Gemini_Generated_Image_yf0chyf0chyf0chy_dqfwph.png', 0, 0, 2, 1, 'published', 'https://res.cloudinary.com/dwzjxsdli/video/upload/v1761573788/React_Beginner_m5v2jh.mp4', '2025-09-06 10:00:00', '2025-10-01 15:00:00'),
+(2, 'PHP in One Click', 'Nắm vững PHP và MySQL...', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761544371/Gemini_Generated_Image_yf0chyf0chyf0chy_1_wtmrau.png', 59000, 75000, 2, 1, 'published', 'https://www.w3schools.com/html/mov_bbb.mp4', '2025-09-07 10:00:00', '2025-10-01 15:00:00'),
+(3, 'Python Introductory', 'Khóa học nhập môn Python...', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761544375/Gemini_Generated_Image_yf0chyf0chyf0chy_2_h9wxs1.png', 39000, 50000, 2, 1, 'published', 'https://www.w3schools.com/html/mov_bbb.mp4', '2025-09-08 10:00:00', '2025-10-01 15:00:00'),
+(4, 'Website Design', 'Thiết kế website chuyên nghiệp', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761544376/Gemini_Generated_Image_yf0chyf0chyf0chy_3_bezddq.png', 49000, 60000, 2, 2, 'published', 'https://www.w3schools.com/html/mov_bbb.mp4', '2025-09-09 10:00:00', '2025-10-01 15:00:00'),
+(5, 'UX Research For...', 'Khám phá các phương pháp...', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761544370/Gemini_Generated_Image_yf0chyf0chyf0chy_4_v5uocw.png', 29000, 35000, 2, 2, 'published', 'https://www.w3schools.com/html/mov_bbb.mp4', '2025-09-10 10:00:00', '2025-10-01 15:00:00'),
+(6, 'Digital Portrait', 'Vẽ chân dung số', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761544373/Gemini_Generated_Image_3s76wn3s76wn3s76_w1sain.png', 67000, 80000, 2, 2, 'published', 'https://www.w3schools.com/html/mov_bbb.mp4', '2025-09-11 10:00:00', '2025-10-01 15:00:00'),
+(7, 'Workspace Decor', 'Trang trí không gian làm việc', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761544373/Gemini_Generated_Image_3s76wn3s76wn3s76_1_xfg3cg.png', 19000, 25000, 2, 2, 'published', 'https://www.w3schools.com/html/mov_bbb.mp4', '2025-09-12 10:00:00', '2025-10-01 15:00:00'),
+(8, 'Packaging Design', 'Thiết kế bao bì sáng tạo', 'https://res.cloudinary.com/dwzjxsdli/image/upload/v1761544372/Gemini_Generated_Image_3s76wn3s76wn3s76_2_innqrz.png', 89000, 100000, 2, 2, 'published', 'https://www.w3schools.com/html/mov_bbb.mp4', '2025-09-13 10:00:00', '2025-10-01 15:00:00'),
+(9, 'Khóa học Spring Boot Toàn Tập', 'Từ cơ bản đến nâng cao về Spring Boot.', 'https://example.com/spring.jpg', 599000, 699000, 2, 1, 'published', 'https://www.youtube.com/watch?v=intro_springboot', '2025-01-15 09:00:00', '2025-02-01 12:00:00'),
+(10, 'Khóa học React Native', 'Xây dựng app mobile đa nền tảng với React Native.', 'https://example.com/reactnative.jpg', 499000, 599000, 2, 1, 'published', 'https://www.youtube.com/watch?v=intro_reactnative', '2025-02-01 09:00:00', '2025-02-10 10:00:00'),
+(11, 'Thiết kế UI/UX với Figma', 'Khóa học hướng dẫn thiết kế chuyên nghiệp với Figma.', 'https://example.com/figma.jpg', 399000, 499000, 2, 2, 'published', 'https://www.youtube.com/watch?v=intro_figma', '2025-02-05 09:30:00', '2025-02-12 08:45:00'),
+(12, 'Khóa học Spring Boot Toàn Tập', 'Từ cơ bản đến nâng cao về Spring Boot.', 'https://example.com/spring.jpg', 599000, 750000, 2, 1, 'published', 'https://www.youtube.com/watch?v=intro_springboot', '2025-01-15 09:00:00', '2025-02-01 12:00:00'),
+(13, 'Khóa học React Native', 'Xây dựng app mobile đa nền tảng với React Native.', 'https://example.com/reactnative.jpg', 499000, 650000, 2, 1, 'published', 'https://www.youtube.com/watch?v=intro_reactnative', '2025-02-01 09:00:00', '2025-02-10 10:00:00'),
+(14, 'Thiết kế UI/UX với Figma', 'Khóa học hướng dẫn thiết kế chuyên nghiệp với Figma.', 'https://example.com/figma.jpg', 399000, 500000, 2, 2, 'published', 'https://www.youtube.com/watch?v=intro_figma', '2025-02-05 09:30:00', '2025-02-12 08:45:00');
 
--- SECTIONS (ID 1-20)
+-- SECTIONS
 INSERT INTO sections (id, title, course_id, order_index, created_at) VALUES
-(1, 'Phần 1: Khái niệm và Cài đặt', 1, 1, '2025-09-14 10:00:00+07'),
-(2, 'Phần 2: Components cơ bản', 1, 2, '2025-09-14 11:00:00+07'),
-(3, 'Phần 1: Cú pháp và Server', 2, 1, '2025-09-15 10:00:00+07'),
-(4, 'Phần 2: Database và Bảo mật', 2, 2, '2025-09-15 11:00:00+07'),
-(5, 'Phần 1: Giới thiệu về Python', 3, 1, '2025-09-16 10:00:00+07'),
-(6, 'Phần 2: Cấu trúc dữ liệu', 3, 2, '2025-09-16 11:00:00+07'),
-(7, 'Phần 1: Wireframing và Figma', 4, 1, '2025-09-17 10:00:00+07'),
-(8, 'Phần 2: Typography và Layout', 4, 2, '2025-09-17 11:00:00+07'),
-(9, 'I - Introduction & Setup', 5, 1, '2025-09-18 10:00:00+07'),
-(10, 'II - Plan for your UX Research', 5, 2, '2025-09-18 11:00:00+07'),
-(11, 'Phần 1: Giải phẫu và Tỷ lệ', 6, 1, '2025-09-19 10:00:00+07'),
-(12, 'Phần 2: Ánh sáng và Màu sắc', 6, 2, '2025-09-19 11:00:00+07'),
-(13, 'Phần 1: Tối ưu hóa không gian', 7, 1, '2025-09-20 10:00:00+07'),
-(14, 'Phần 2: Ánh sáng và Nội thất', 7, 2, '2025-09-20 11:00:00+07'),
-(15, 'Phần 1: Die-cut và Vật liệu', 8, 1, '2025-09-21 10:00:00+07'),
-(16, 'Phần 2: Mockup và In ấn', 8, 2, '2025-09-21 11:00:00+07'),
-(17, 'Giới thiệu về Spring Boot', 12, 1, '2025-01-15 09:10:00+07'),
-(18, 'Cấu trúc dự án Spring Boot', 12, 2, '2025-01-16 10:00:00+07'),
-(19, 'Bắt đầu với React Native', 13, 1, '2025-02-01 09:10:00+07'),
-(20, 'Thiết kế App UI cơ bản', 14, 1, '2025-02-05 09:45:00+07');
+(1, 'Phần 1: Khái niệm và Cài đặt', 1, 1, '2025-09-14 10:00:00'),
+(2, 'Phần 2: Components cơ bản', 1, 2, '2025-09-14 11:00:00'),
+(3, 'Phần 1: Cú pháp và Server', 2, 1, '2025-09-15 10:00:00'),
+(4, 'Phần 2: Database và Bảo mật', 2, 2, '2025-09-15 11:00:00'),
+(5, 'Phần 1: Giới thiệu về Python', 3, 1, '2025-09-16 10:00:00'),
+(6, 'Phần 2: Cấu trúc dữ liệu', 3, 2, '2025-09-16 11:00:00'),
+(7, 'Phần 1: Wireframing và Figma', 4, 1, '2025-09-17 10:00:00'),
+(8, 'Phần 2: Typography và Layout', 4, 2, '2025-09-17 11:00:00'),
+(9, 'I - Introduction & Setup', 5, 1, '2025-09-18 10:00:00'),
+(10, 'II - Plan for your UX Research', 5, 2, '2025-09-18 11:00:00'),
+(11, 'Phần 1: Giải phẫu và Tỷ lệ', 6, 1, '2025-09-19 10:00:00'),
+(12, 'Phần 2: Ánh sáng và Màu sắc', 6, 2, '2025-09-19 11:00:00'),
+(13, 'Phần 1: Tối ưu hóa không gian', 7, 1, '2025-09-20 10:00:00'),
+(14, 'Phần 2: Ánh sáng và Nội thất', 7, 2, '2025-09-20 11:00:00'),
+(15, 'Phần 1: Die-cut và Vật liệu', 8, 1, '2025-09-21 10:00:00'),
+(16, 'Phần 2: Mockup và In ấn', 8, 2, '2025-09-21 11:00:00'),
+(17, 'Giới thiệu về Spring Boot', 12, 1, '2025-01-15 09:10:00'),
+(18, 'Cấu trúc dự án Spring Boot', 12, 2, '2025-01-16 10:00:00'),
+(19, 'Bắt đầu với React Native', 13, 1, '2025-02-01 09:10:00'),
+(20, 'Thiết kế App UI cơ bản', 14, 1, '2025-02-05 09:45:00');
 
--- LESSONS (ID 1-22)
+-- LESSONS
 INSERT INTO lessons (id, title, section_id, playback_url, duration_in_seconds, is_free, order_index, created_at, updated_at) VALUES
-(1, 'Cài đặt môi trường React Native', 1, 'https://res.cloudinary.com/dwzjxsdli/video/upload/v1761573788/React_Beginner_m5v2jh.mp4', 300, true, 1, '2025-09-22 10:00:00+07', '2025-09-22 10:00:00+07'),
-(2, 'Giới thiệu về Components', 2, 'url_video_2', 240, true, 1, '2025-09-22 11:00:00+07', '2025-09-22 11:00:00+07'),
-(3, 'Giới thiệu cú pháp PHP', 3, 'url_video_3', 360, true, 1, '2025-09-23 10:00:00+07', '2025-09-23 10:00:00+07'),
-(4, 'Kết nối MySQL', 4, 'url_video_4', 480, false, 2, '2025-09-23 11:00:00+07', '2025-09-23 11:00:00+07'),
-(5, 'Biến và Kiểu dữ liệu Python', 5, 'url_video_5', 270, true, 1, '2025-09-24 10:00:00+07', '2025-09-24 10:00:00+07'),
-(6, 'List và Dictionary', 6, 'url_video_6', 330, false, 2, '2025-09-24 11:00:00+07', '2025-09-24 11:00:00+07'),
-(7, 'Tạo Wireframe với Figma', 7, 'url_video_7', 372, true, 1, '2025-09-25 10:00:00+07', '2025-09-25 10:00:00+07'),
-(8, 'Làm việc với Typo', 8, 'url_video_8', 288, false, 2, '2025-09-25 11:00:00+07', '2025-09-25 11:00:00+07'),
-(9, 'Amet adipisicing consectetur (Lesson 1)', 9, 'url_video_9', 74, true, 1, '2025-09-26 10:00:00+07', '2025-09-26 10:00:00+07'),
-(10, 'Adipisicing dolor amet occaeca (Lesson 2)', 9, 'url_video_10', 74, false, 2, '2025-09-26 11:00:00+07', '2025-09-26 11:00:00+07'),
-(11, 'Exercitation elit incididunt esse (Lesson 3)', 10, 'url_video_11', 74, false, 1, '2025-09-27 10:00:00+07', '2025-09-27 10:00:00+07'),
-(12, 'Duis esse ipsum laboru (Lesson 4)', 10, 'url_video_12', 74, false, 2, '2025-09-27 11:00:00+07', '2025-09-27 11:00:00+07'),
-(13, 'Giải phẫu khuôn mặt', 11, 'url_video_13', 600, false, 1, '2025-09-28 10:00:00+07', '2025-09-28 10:00:00+07'),
-(14, 'Kỹ thuật đổ bóng', 12, 'url_video_14', 510, false, 1, '2025-09-29 10:00:00+07', '2025-09-29 10:00:00+07'),
-(15, 'Tư vấn chọn nội thất', 13, 'url_video_15', 450, false, 1, '2025-09-30 10:00:00+07', '2025-09-30 10:00:00+07'),
-(16, 'Lựa chọn ánh sáng', 14, 'url_video_16', 408, false, 1, '2025-10-01 10:00:00+07', '2025-10-01 10:00:00+07'),
-(17, 'Giới thiệu về Die-cut', 15, 'url_video_17', 558, false, 1, '2025-10-02 10:00:00+07', '2025-10-02 10:00:00+07'),
-(18, 'Làm Mockup 3D', 16, 'url_video_18', 660, false, 1, '2025-10-03 10:00:00+07', '2025-10-03 10:00:00+07'),
-(19, 'Bài 1: Spring Boot là gì?', 17, 'https://www.youtube.com/watch?v=yt_101', 600, false, 1, '2025-01-15 10:05:00+07', '2025-01-15 10:05:00+07'),
-(20, 'Bài 2: Cài đặt môi trường', 18, 'https://www.youtube.com/watch?v=yt_102', 800, false, 2, '2025-01-16 14:35:00+07', '2025-01-16 14:35:00+07'),
-(21, 'Bài 1: Khởi tạo project React Native', 19, 'https://www.youtube.com/watch?v=yt_103', 700, false, 1, '2025-02-01 09:20:00+07', '2025-02-01 09:20:00+07'),
-(22, 'Bài 1: Thiết kế giao diện đầu tiên', 20, 'https://www.youtube.com/watch?v=yt_104', 900, true, 1, '2025-02-05 11:25:00+07', '2025-02-05 11:25:00+07');
+(1, 'Cài đặt môi trường React Native', 1, 'https://res.cloudinary.com/dwzjxsdli/video/upload/v1761573788/React_Beginner_m5v2jh.mp4', 300, true, 1, '2025-09-22 10:00:00', '2025-09-22 10:00:00'),
+(2, 'Giới thiệu về Components', 2, 'url_video_2', 240, true, 1, '2025-09-22 11:00:00', '2025-09-22 11:00:00'),
+(3, 'Giới thiệu cú pháp PHP', 3, 'url_video_3', 360, true, 1, '2025-09-23 10:00:00', '2025-09-23 10:00:00'),
+(4, 'Kết nối MySQL', 4, 'url_video_4', 480, false, 2, '2025-09-23 11:00:00', '2025-09-23 11:00:00'),
+(5, 'Biến và Kiểu dữ liệu Python', 5, 'url_video_5', 270, true, 1, '2025-09-24 10:00:00', '2025-09-24 10:00:00'),
+(6, 'List và Dictionary', 6, 'url_video_6', 330, false, 2, '2025-09-24 11:00:00', '2025-09-24 11:00:00'),
+(7, 'Tạo Wireframe với Figma', 7, 'url_video_7', 372, true, 1, '2025-09-25 10:00:00', '2025-09-25 10:00:00'),
+(8, 'Làm việc với Typo', 8, 'url_video_8', 288, false, 2, '2025-09-25 11:00:00', '2025-09-25 11:00:00'),
+(9, 'Amet adipisicing consectetur (Lesson 1)', 9, 'url_video_9', 74, true, 1, '2025-09-26 10:00:00', '2025-09-26 10:00:00'),
+(10, 'Adipisicing dolor amet occaeca (Lesson 2)', 9, 'url_video_10', 74, false, 2, '2025-09-26 11:00:00', '2025-09-26 11:00:00'),
+(11, 'Exercitation elit incididunt esse (Lesson 3)', 10, 'url_video_11', 74, false, 1, '2025-09-27 10:00:00', '2025-09-27 10:00:00'),
+(12, 'Duis esse ipsum laboru (Lesson 4)', 10, 'url_video_12', 74, false, 2, '2025-09-27 11:00:00', '2025-09-27 11:00:00'),
+(13, 'Giải phẫu khuôn mặt', 11, 'url_video_13', 600, false, 1, '2025-09-28 10:00:00', '2025-09-28 10:00:00'),
+(14, 'Kỹ thuật đổ bóng', 12, 'url_video_14', 510, false, 1, '2025-09-29 10:00:00', '2025-09-29 10:00:00'),
+(15, 'Tư vấn chọn nội thất', 13, 'url_video_15', 450, false, 1, '2025-09-30 10:00:00', '2025-09-30 10:00:00'),
+(16, 'Lựa chọn ánh sáng', 14, 'url_video_16', 408, false, 1, '2025-10-01 10:00:00', '2025-10-01 10:00:00'),
+(17, 'Giới thiệu về Die-cut', 15, 'url_video_17', 558, false, 1, '2025-10-02 10:00:00', '2025-10-02 10:00:00'),
+(18, 'Làm Mockup 3D', 16, 'url_video_18', 660, false, 1, '2025-10-03 10:00:00', '2025-10-03 10:00:00'),
+(19, 'Bài 1: Spring Boot là gì?', 17, 'https://www.youtube.com/watch?v=yt_101', 600, false, 1, '2025-01-15 10:05:00', '2025-01-15 10:05:00'),
+(20, 'Bài 2: Cài đặt môi trường', 18, 'https://www.youtube.com/watch?v=yt_102', 800, false, 2, '2025-01-16 14:35:00', '2025-01-16 14:35:00'),
+(21, 'Bài 1: Khởi tạo project React Native', 19, 'https://www.youtube.com/watch?v=yt_103', 700, false, 1, '2025-02-01 09:20:00', '2025-02-01 09:20:00'),
+(22, 'Bài 1: Thiết kế giao diện đầu tiên', 20, 'https://www.youtube.com/watch?v=yt_104', 900, true, 1, '2025-02-05 11:25:00', '2025-02-05 11:25:00');
 
--- ORDERS (user_id = 1)
+-- ORDERS
 INSERT INTO orders (id, user_id, course_id, amount, status, created_at) VALUES
-(1, 1, 5, 29000, 'completed', '2025-10-01 10:00:00+07'),
-(2, 1, 4, 49000, 'completed', '2025-09-20 08:30:00+07'),
-(3, 1, 6, 67000, 'completed', '2025-09-15 14:20:00+07'),
-(4, 1, 7, 19000, 'completed', '2025-09-10 09:00:00+07'),
-(5, 1, 8, 89000, 'completed', '2025-09-05 11:11:00+07'),
-(6, 1, 2, 59000, 'pending', '2025-10-25 12:00:00+07'),
-(7, 1, 3, 39000, 'pending', '2025-10-20 15:30:00+07'),
-(8, 1, 12, 599000, 'completed', '2025-03-01 08:00:00+07'),
-(9, 1, 13, 499000, 'failed', '2025-03-05 09:00:00+07');
+(1, 1, 5, 29000, 'completed', '2025-10-01 10:00:00'),
+(2, 1, 4, 49000, 'completed', '2025-09-20 08:30:00'),
+(3, 1, 6, 67000, 'completed', '2025-09-15 14:20:00'),
+(4, 1, 7, 19000, 'completed', '2025-09-10 09:00:00'),
+(5, 1, 8, 89000, 'completed', '2025-09-05 11:11:00'),
+(6, 1, 2, 59000, 'pending', '2025-10-25 12:00:00'),
+(7, 1, 3, 39000, 'pending', '2025-10-20 15:30:00'),
+(8, 1, 12, 599000, 'completed', '2025-03-01 08:00:00'),
+(9, 1, 13, 499000, 'failed', '2025-03-05 09:00:00');
 
 -- TRANSACTIONS
 INSERT INTO transactions (id, order_id, amount, status, payment_method, transaction_code, created_at) VALUES
-(1, 8, 599000, 'success', 'momo', 'MOMO12345', '2025-03-01 08:00:30+07'),
-(2, 9, 499000, 'failed', 'momo', 'MOMO-FAILED-001', '2025-03-05 09:01:00+07');
+(1, 8, 599000, 'success', 'momo', 'MOMO12345', '2025-03-01 08:00:30'),
+(2, 9, 499000, 'failed', 'momo', 'MOMO-FAILED-001', '2025-03-05 09:01:00');
 
 -- ENROLLMENTS
 INSERT INTO enrollments (id, user_id, course_id, order_id, enrollment_date) VALUES
-(1, 1, 5, 1, '2025-10-01 10:05:00+07'),
-(2, 1, 4, 2, '2025-09-20 08:35:00+07'),
-(3, 1, 6, 3, '2025-09-15 14:25:00+07'),
-(4, 1, 7, 4, '2025-09-10 09:05:00+07'),
-(5, 1, 8, 5, '2025-09-05 11:15:00+07'),
-(6, 1, 12, 8, '2025-03-01 08:01:00+07');
+(1, 1, 5, 1, '2025-10-01 10:05:00'),
+(2, 1, 4, 2, '2025-09-20 08:35:00'),
+(3, 1, 6, 3, '2025-09-15 14:25:00'),
+(4, 1, 7, 4, '2025-09-10 09:05:00'),
+(5, 1, 8, 5, '2025-09-05 11:15:00'),
+(6, 1, 12, 8, '2025-03-01 08:01:00');
 
 -- PROGRESS
 INSERT INTO progress (id, enrollment_id, lesson_id, is_completed, updated_at) VALUES
-(1, 1, 9, true, '2025-10-02 10:00:00+07'),
-(2, 1, 10, true, '2025-10-02 10:05:00+07'),
-(3, 1, 11, true, '2025-10-02 10:10:00+07'),
-(4, 1, 12, false, '2025-10-02 10:15:00+07'),
-(5, 2, 7, true, '2025-09-21 09:00:00+07'),
-(6, 2, 8, true, '2025-09-21 09:30:00+07'),
-(7, 3, 13, true, '2025-09-16 15:00:00+07'),
-(8, 3, 14, true, '2025-09-16 15:30:00+07'),
-(9, 4, 15, true, '2025-09-11 10:00:00+07'),
-(10, 4, 16, false, '2025-09-11 10:30:00+07'),
-(11, 5, 17, true, '2025-09-06 12:00:00+07'),
-(12, 5, 18, false, '2025-09-06 12:30:00+07'),
-(13, 6, 19, true, '2025-03-02 10:00:00+07'),
-(14, 6, 20, false, '2025-03-03 09:30:00+07');
+(1, 1, 9, true, '2025-10-02 10:00:00'),
+(2, 1, 10, true, '2025-10-02 10:05:00'),
+(3, 1, 11, true, '2025-10-02 10:10:00'),
+(4, 1, 12, false, '2025-10-02 10:15:00'),
+(5, 2, 7, true, '2025-09-21 09:00:00'),
+(6, 2, 8, true, '2025-09-21 09:30:00'),
+(7, 3, 13, true, '2025-09-16 15:00:00'),
+(8, 3, 14, true, '2025-09-16 15:30:00'),
+(9, 4, 15, true, '2025-09-11 10:00:00'),
+(10, 4, 16, false, '2025-09-11 10:30:00'),
+(11, 5, 17, true, '2025-09-06 12:00:00'),
+(12, 5, 18, false, '2025-09-06 12:30:00'),
+(13, 6, 19, true, '2025-03-02 10:00:00'),
+(14, 6, 20, false, '2025-03-03 09:30:00');
 
 -- REVIEWS
 INSERT INTO reviews (id, user_id, course_id, rating, comment, created_at) VALUES
-(1, 9, 5, 5, 'Khóa học rất chi tiết...', '2025-10-04 10:00:00+07'),
-(2, 10, 5, 3, 'Một số phần khá khô khan...', '2025-10-03 10:00:00+07'),
-(3, 11, 5, 4, 'Bài tập thực hành hữu ích...', '2025-10-01 10:00:00+07'),
-(4, 9, 1, 5, 'Rất tuyệt cho người mới...', '2025-10-02 10:00:00+07'),
-(5, 10, 1, 4, 'Giảng viên có tâm...', '2025-10-01 10:00:00+07'),
-(6, 11, 1, 5, 'Cực kỳ dễ theo dõi...', '2025-09-28 10:00:00+07'),
-(7, 9, 2, 4, 'Khóa PHP này giúp tôi...', '2025-09-20 10:00:00+07'),
-(8, 10, 2, 5, 'Nội dung phong phú...', '2025-09-28 10:00:00+07'),
-(9, 11, 2, 4, 'Bài giảng rõ ràng...', '2025-10-03 10:00:00+07'),
-(10, 9, 3, 5, 'Python được giải thích...', '2025-10-02 10:00:00+07'),
-(11, 10, 3, 4, 'Thầy giảng dễ hiểu...', '2025-10-01 10:00:00+07'),
-(12, 9, 4, 4, 'Phần Figma khá thú vị...', '2025-10-04 10:00:00+07'),
-(13, 10, 4, 5, 'Khóa học cực kỳ hữu ích...', '2025-10-02 10:00:00+07'),
-(14, 11, 6, 5, 'Bài giảng nghệ thuật...', '2025-10-03 10:00:00+07'),
-(15, 10, 7, 4, 'Ý tưởng trang trí...', '2025-09-28 10:00:00+07'),
-(16, 9, 8, 5, 'Khóa học bao bì sáng tạo...', '2025-10-01 10:00:00+07'),
-(17, 1, 12, 5, 'Khóa học rất hay và dễ hiểu!', '2025-03-10 12:00:00+07');
+(1, 9, 5, 5, 'Khóa học rất chi tiết...', '2025-10-04 10:00:00'),
+(2, 10, 5, 3, 'Một số phần khá khô khan...', '2025-10-03 10:00:00'),
+(3, 11, 5, 4, 'Bài tập thực hành hữu ích...', '2025-10-01 10:00:00'),
+(4, 9, 1, 5, 'Rất tuyệt cho người mới...', '2025-10-02 10:00:00'),
+(5, 10, 1, 4, 'Giảng viên có tâm...', '2025-10-01 10:00:00'),
+(6, 11, 1, 5, 'Cực kỳ dễ theo dõi...', '2025-09-28 10:00:00'),
+(7, 9, 2, 4, 'Khóa PHP này giúp tôi...', '2025-09-20 10:00:00'),
+(8, 10, 2, 5, 'Nội dung phong phú...', '2025-09-28 10:00:00'),
+(9, 11, 2, 4, 'Bài giảng rõ ràng...', '2025-10-03 10:00:00'),
+(10, 9, 3, 5, 'Python được giải thích...', '2025-10-02 10:00:00'),
+(11, 10, 3, 4, 'Thầy giảng dễ hiểu...', '2025-10-01 10:00:00'),
+(12, 9, 4, 4, 'Phần Figma khá thú vị...', '2025-10-04 10:00:00'),
+(13, 10, 4, 5, 'Khóa học cực kỳ hữu ích...', '2025-10-02 10:00:00'),
+(14, 11, 6, 5, 'Bài giảng nghệ thuật...', '2025-10-03 10:00:00'),
+(15, 10, 7, 4, 'Ý tưởng trang trí...', '2025-09-28 10:00:00'),
+(16, 9, 8, 5, 'Khóa học bao bì sáng tạo...', '2025-10-01 10:00:00'),
+(17, 1, 12, 5, 'Khóa học rất hay và dễ hiểu!', '2025-03-10 12:00:00');
 
 -- QUIZ
 INSERT INTO quizzes (id, lesson_id, title, created_at) VALUES 
-(1, 3, 'Quiz: Ôn tập bài 3', '2025-03-02 11:00:00+07'),
-(2, 19, 'Quiz kiểm tra kiến thức bài 1', '2025-03-02 11:00:00+07');
+(1, 3, 'Quiz: Ôn tập bài 3', '2025-03-02 11:00:00'),
+(2, 19, 'Quiz kiểm tra kiến thức bài 1', '2025-03-02 11:00:00');
 
 INSERT INTO questions (id, quiz_id, question_text, question_type, created_at) VALUES 
-(1, 1, 'React là gì?', 'multiple_choice', '2025-03-02 11:01:00+07'),
-(2, 2, 'Spring Boot dùng để làm gì?', 'single_choice', '2025-03-02 11:01:00+07');
+(1, 1, 'React là gì?', 'multiple_choice', '2025-03-02 11:01:00'),
+(2, 2, 'Spring Boot dùng để làm gì?', 'single_choice', '2025-03-02 11:01:00');
 
 INSERT INTO answers (id, question_id, answer_text, is_correct, created_at) VALUES 
-(1, 1, 'Thư viện JavaScript', true, '2025-03-02 11:02:00+07'),
-(2, 1, 'Ngôn ngữ lập trình', false, '2025-03-02 11:03:00+07'),
-(3, 2, 'Xây dựng ứng dụng web với Java', true, '2025-03-02 11:02:00+07'),
-(4, 2, 'Quản lý cơ sở dữ liệu', false, '2025-03-02 11:03:00+07');
+(1, 1, 'Thư viện JavaScript', true, '2025-03-02 11:02:00'),
+(2, 1, 'Ngôn ngữ lập trình', false, '2025-03-02 11:03:00'),
+(3, 2, 'Xây dựng ứng dụng web với Java', true, '2025-03-02 11:02:00'),
+(4, 2, 'Quản lý cơ sở dữ liệu', false, '2025-03-02 11:03:00');
 
 -- QUIZ_ATTEMPTS + USER_ANSWERS
 INSERT INTO quiz_attempts (id, user_id, quiz_id, score, total_questions, completed_at, created_at) VALUES
-(1, 1, 2, 100, 1, '2025-03-02 11:10:00+07', '2025-03-02 11:05:00+07');
+(1, 1, 2, 100, 1, '2025-03-02 11:10:00', '2025-03-02 11:05:00');
 
 INSERT INTO user_answers (id, quiz_attempt_id, question_id, answer_id, is_correct, created_at) VALUES
-(1, 1, 2, 3, true, '2025-03-02 11:06:00+07');
+(1, 1, 2, 3, true, '2025-03-02 11:06:00');
 
 -- CERTIFICATES
 INSERT INTO certificates (id, user_id, course_id, certificate_code, issue_date) VALUES
-(1, 1, 8, 'CERT-2025-0001', '2025-10-05 09:00:00+07'),
-(2, 1, 12, 'CERT-2025-0002', '2025-03-15 09:00:00+07');
+(1, 1, 8, 'CERT-2025-0001', '2025-10-05 09:00:00'),
+(2, 1, 12, 'CERT-2025-0002', '2025-03-15 09:00:00');
 
 -- ACTIVITY_LOGS
-INSERT INTO activity_logs (id, user_id, action, entity_type, entity_id, description, ip_address, user_agent, created_at) VALUES
-(1, 1, 'login', 'user', 1, 'User logged in', '192.168.1.100', 'Mozilla/5.0', '2025-03-01 07:59:00+07'),
-(2, 1, 'start_lesson', 'lesson', 19, 'Started lesson Spring Boot', '192.168.1.100', 'Mozilla/5.0', '2025-03-02 09:50:00+07'),
-(3, 1, 'complete_lesson', 'lesson', 19, 'Completed lesson Spring Boot', '192.168.1.100', 'Mozilla/5.0', '2025-03-02 10:00:00+07'),
-(4, 1, 'payment_failed', 'order', 9, 'Payment failed for React Native course', '192.168.1.100', 'Mozilla/5.0', '2025-03-05 09:01:00+07');
+INSERT INTO activity_logs (id, user_id, `action`, entity_type, entity_id, description, ip_address, user_agent, created_at) VALUES
+(1, 1, 'login', 'user', 1, 'User logged in', '192.168.1.100', 'Mozilla/5.0', '2025-03-01 07:59:00'),
+(2, 1, 'start_lesson', 'lesson', 19, 'Started lesson Spring Boot', '192.168.1.100', 'Mozilla/5.0', '2025-03-02 09:50:00'),
+(3, 1, 'complete_lesson', 'lesson', 19, 'Completed lesson Spring Boot', '192.168.1.100', 'Mozilla/5.0', '2025-03-02 10:00:00'),
+(4, 1, 'payment_failed', 'order', 9, 'Payment failed for React Native course', '192.168.1.100', 'Mozilla/5.0', '2025-03-05 09:01:00');
 
 -- NOTIFICATIONS
 INSERT INTO notifications (id, user_id, title, message, is_read, created_at) VALUES
-(1, 1, 'Chào mừng đến với E-learning!', 'Bắt đầu khóa học của bạn ngay hôm nay!', false, '2025-09-01 08:05:00+07'),
-(2, 2, 'Học viên mới đăng ký', 'Học viên Nguyễn Văn A vừa đăng ký khóa UX Research.', false, '2025-10-01 08:06:00+07'),
-(3, 1, 'Chào mừng đến với E-learning!', 'Bắt đầu khóa học Spring Boot ngay!', false, '2025-03-01 08:05:00+07'),
-(4, 2, 'Học viên mới đăng ký', 'Học viên Nguyễn Văn A vừa đăng ký khóa Spring Boot.', false, '2025-03-01 08:06:00+07');
+(1, 1, 'Chào mừng đến với E-learning!', 'Bắt đầu khóa học của bạn ngay hôm nay!', false, '2025-09-01 08:05:00'),
+(2, 2, 'Học viên mới đăng ký', 'Học viên Nguyễn Văn A vừa đăng ký khóa UX Research.', false, '2025-10-01 08:06:00'),
+(3, 1, 'Chào mừng đến với E-learning!', 'Bắt đầu khóa học Spring Boot ngay!', false, '2025-03-01 08:05:00'),
+(4, 2, 'Học viên mới đăng ký', 'Học viên Nguyễn Văn A vừa đăng ký khóa Spring Boot.', false, '2025-03-01 08:06:00');
 
--- HOÀN TẤT!
+
