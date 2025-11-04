@@ -8,7 +8,7 @@ import com.elearning.exception.ResourceNotFoundException;
 import com.elearning.modal.dto.request.CourseRequestDTO;
 import com.elearning.modal.dto.response.CourseResponseDTO;
 import com.elearning.repository.CategoryRepository;
-import com.elearning.repository.UserRepository;
+import com.elearning.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
@@ -18,26 +18,41 @@ import org.springframework.stereotype.Component;
 public class CourseConverter {
 
     private final ModelMapper modelMapper;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final CategoryRepository categoryRepository;
 
-
     public Course toEntity(CourseRequestDTO dto) {
+
         Course course = modelMapper.map(dto, Course.class);
-        User instructor = userRepository.findById(dto.getInstructorId())
-                .orElseThrow();
+
+        User instructor = userService.getUserEntityById(dto.getInstructorId());
         Category category = categoryRepository.findById(dto.getCategoryId())
                 .orElseThrow();
+
         course.setInstructor(instructor);
         course.setCategory(category);
         course.setId(null);
-
         return course;
     }
 
+    public void updateEntity(Course existingCourse, CourseRequestDTO dto) {
+        modelMapper.map(dto, existingCourse);
+        if (!existingCourse.getInstructor().getId().equals(dto.getInstructorId())) {
+            User instructor = userService.getUserEntityById(dto.getInstructorId());
+            existingCourse.setInstructor(instructor);
+        }
+
+        if (!existingCourse.getCategory().getId().equals(dto.getCategoryId())) {
+            Category category = categoryRepository.findById(dto.getCategoryId())
+                    .orElseThrow();
+            existingCourse.setCategory(category);
+        }
+    }
+
+
+
     public CourseResponseDTO toDTO(Course entity) {
         CourseResponseDTO dto = modelMapper.map(entity, CourseResponseDTO.class);
-
         if (entity.getInstructor() != null) {
             dto.setInstructorId(entity.getInstructor().getId());
             dto.setInstructorName(entity.getInstructor().getFullName());

@@ -1,8 +1,8 @@
 package com.elearning.service.impl;
 
 import com.elearning.converter.CourseConverter;
-
 import com.elearning.entity.Course;
+import com.elearning.exception.ResourceNotFoundException;
 import com.elearning.modal.dto.request.CourseRequestDTO;
 import com.elearning.modal.dto.response.CourseResponseDTO;
 import com.elearning.modal.dto.search.CourseSearchRequest;
@@ -43,24 +43,20 @@ public class CourseServiceImpl implements CourseService {
     @Transactional(readOnly = true)
     public Page<CourseResponseDTO> searchCourses(CourseSearchRequest searchRequest, Pageable pageable) {
         log.info("Đang tìm kiếm khóa học...");
-
         Specification<Course> spec = (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
-
             if (StringUtils.hasText(searchRequest.getTitle())) {
                 predicates.add(criteriaBuilder.like(
                         criteriaBuilder.lower(root.get("title")),
                         "%" + searchRequest.getTitle().toLowerCase() + "%"
                 ));
             }
-
             if (searchRequest.getCategoryId() != null) {
                 predicates.add(criteriaBuilder.equal(
                         root.get("category").get("id"),
                         searchRequest.getCategoryId()
                 ));
             }
-
             if (searchRequest.getStatus() != null) {
                 predicates.add(criteriaBuilder.equal(
                         root.get("status"),
@@ -70,10 +66,42 @@ public class CourseServiceImpl implements CourseService {
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
 
-
         Page<Course> coursePage = courseRepository.findAll(spec, pageable);
         log.info("Đã tìm thấy {} khóa học.", coursePage.getTotalElements());
-
         return coursePage.map(courseConverter::toDTO);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CourseResponseDTO getCourseById(Integer id) {
+        log.info("Đang tìm khóa học với ID: {}", id);
+        Course course = courseRepository.findById(id)
+                .orElseThrow();
+        log.info("Đã tìm thấy khóa học: {}", course.getTitle());
+        return courseConverter.toDTO(course);
+    }
+
+    @Override
+    @Transactional
+    public CourseResponseDTO updateCourse(Integer id, CourseRequestDTO courseRequestDTO) {
+        log.info("Đang cập nhật khóa học ID: {}", id);
+
+        Course existingCourse = courseRepository.findById(id)
+                .orElseThrow();
+        courseConverter.updateEntity(existingCourse, courseRequestDTO);
+        Course updatedCourse = courseRepository.save(existingCourse);
+        log.info("Đã cập nhật khóa học thành công.");
+        return courseConverter.toDTO(updatedCourse);
+    }
+
+    @Override
+    @Transactional
+    public void deleteCourse(Integer id) {
+        log.info("Đang xóa khóa học ID: {}", id);
+
+        Course course = courseRepository.findById(id)
+                .orElseThrow();
+        courseRepository.delete(course);
+        log.info("Đã xóa khóa học thành công.");
     }
 }

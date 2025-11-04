@@ -7,6 +7,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface CourseService {
+
     CourseResponseDTO createCourse(CourseRequestDTO courseRequestDTO);
     Page<CourseResponseDTO> searchCourses(CourseSearchRequest searchRequest, Pageable pageable);
+    CourseResponseDTO getCourseById(Integer id);
+    CourseResponseDTO updateCourse(Integer id, CourseRequestDTO courseRequestDTO);
+    void deleteCourse(Integer id);
 }
