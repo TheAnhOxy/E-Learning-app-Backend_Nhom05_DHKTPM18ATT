@@ -1,4 +1,4 @@
-package com.elearning.modal.response;
+package com.elearning.modal.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
