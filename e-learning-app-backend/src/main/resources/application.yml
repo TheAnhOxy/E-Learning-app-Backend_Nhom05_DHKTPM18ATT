@@ -1,0 +1,47 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: E-learning-App
+
+  profiles:
+    active: dev
+
+#  autoconfigure:
+#    exclude:
+#      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+
+  jpa:
+    hibernate:
+      ddl-auto: none  # Các lựa chọn: none, update, create, create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        enable_lazy_load_no_trans: true
+        format_sql: true
+        logging:
+          level:
+            org:
+              hibernate:
+                SQL=DEBUG:
+    show-sql: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+
+logging:
+  level:
+    root: INFO
+    web: INFO
+#    org.springframework: DEBUG
+#    org.springdoc: DEBUG
+#    org.apache.commons: DEBUG
+    org.springframework.data.repository: DEBUG
+
+
+dev:
+  nguyen: Nguyen-The-Anh
