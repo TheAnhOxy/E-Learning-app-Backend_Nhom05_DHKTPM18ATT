@@ -15,7 +15,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-class AnswerRequestDTO {
+public class AnswerRequestDTO {
     private Integer id;
 
     @NotBlank(message = "Nội dung câu trả lời không được trống")
