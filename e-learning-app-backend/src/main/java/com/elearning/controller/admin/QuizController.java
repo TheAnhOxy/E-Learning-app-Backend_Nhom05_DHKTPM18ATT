@@ -1,4 +1,4 @@
-package com.elearning.controller;
+package com.elearning.controller.admin;
 
 import com.elearning.modal.dto.request.QuizRequestDTO;
 import com.elearning.modal.dto.response.ApiResponse;
@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/admin/quizzes") 
+@RequestMapping("/admin/quizzes")
 @RequiredArgsConstructor
 @Slf4j
 public class QuizController {

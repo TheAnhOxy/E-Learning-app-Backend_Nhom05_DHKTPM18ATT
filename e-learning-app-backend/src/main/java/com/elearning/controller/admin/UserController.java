@@ -1,4 +1,4 @@
-package com.elearning.controller;
+package com.elearning.controller.admin;
 
 
 import com.elearning.modal.dto.response.ApiResponse;
