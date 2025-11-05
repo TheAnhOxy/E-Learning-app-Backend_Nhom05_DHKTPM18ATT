@@ -6,4 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer> {
     boolean existsByUserIdAndCourseId(Integer userId, @NotNull(message = "ID Khóa học không được để trống") Integer courseId);
+
+    Enrollment findByOrderId(Integer id);
 }
