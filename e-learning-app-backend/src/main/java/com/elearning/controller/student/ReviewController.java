@@ -23,35 +23,28 @@ public class ReviewController {
 
     private final ReviewService reviewService;
 
-    private Integer getAuthenticatedUserId(UserDetails userDetails) {
-        log.warn("ĐANG GIẢ LẬP USER ID = 1 (student01). Cần thay thế bằng logic bảo mật thật!");
-        return 1;
-    }
-
     @GetMapping("/course/{courseId}")
     public ResponseEntity<ApiResponse> getReviewsByCourse(
-            @PathVariable Integer courseId,
-            @PageableDefault(size = 5, sort = "createdAt") Pageable pageable
+            @PathVariable Integer courseId
     ) {
         log.info("Nhận yêu cầu lấy reviews cho khóa học ID: {}", courseId);
-        var reviewPage = reviewService.getReviewsByCourseId(courseId, pageable);
+        // Gọi hàm service mới
+        var reviewList = reviewService.getReviewsByCourseId(courseId);
         ApiResponse response = ApiResponse.builder()
                 .status(HttpStatus.OK.value())
                 .message("Lấy danh sách đánh giá thành công")
-                .data(reviewPage)
+                .data(reviewList) // Trả về List
                 .build();
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/my-review/{courseId}")
     public ResponseEntity<ApiResponse> getMyReview(
-            @PathVariable Integer courseId,
-            @AuthenticationPrincipal UserDetails userDetails
+            @PathVariable Integer courseId
     ) {
-        Integer userId = getAuthenticatedUserId(userDetails);
-        log.info("Student ID {} lấy review của mình cho khóa học ID: {}", userId, courseId);
+        log.info("Student (ID Gắn cứng) lấy review của mình cho khóa học ID: {}", courseId);
 
-        var reviewData = reviewService.getMyReviewForCourse(courseId, userId);
+        var reviewData = reviewService.getMyReviewForCourse(courseId);
         ApiResponse response = ApiResponse.builder()
                 .status(HttpStatus.OK.value())
                 .message("Lấy đánh giá của bạn thành công")
@@ -60,16 +53,13 @@ public class ReviewController {
         return ResponseEntity.ok(response);
     }
 
-
     @PostMapping
     public ResponseEntity<ApiResponse> createReview(
-            @Valid @RequestBody ReviewRequestDTO reviewRequestDTO,
-            @AuthenticationPrincipal UserDetails userDetails
+            @Valid @RequestBody ReviewRequestDTO reviewRequestDTO
     ) {
-        Integer userId = getAuthenticatedUserId(userDetails);
-        log.info("Student ID {} tạo review cho khóa học ID: {}", userId, reviewRequestDTO.getCourseId());
+        log.info("Student (ID Gắn cứng) tạo review cho khóa học ID: {}", reviewRequestDTO.getCourseId());
 
-        var createdReview = reviewService.createReview(reviewRequestDTO, userId);
+        var createdReview = reviewService.createReview(reviewRequestDTO);
         ApiResponse response = ApiResponse.builder()
                 .status(HttpStatus.CREATED.value())
                 .message("Tạo đánh giá thành công!")
@@ -81,13 +71,11 @@ public class ReviewController {
     @PutMapping("/{reviewId}")
     public ResponseEntity<ApiResponse> updateMyReview(
             @PathVariable Integer reviewId,
-            @Valid @RequestBody ReviewRequestDTO reviewRequestDTO,
-            @AuthenticationPrincipal UserDetails userDetails
+            @Valid @RequestBody ReviewRequestDTO reviewRequestDTO
     ) {
-        Integer userId = getAuthenticatedUserId(userDetails);
-        log.info("Student ID {} cập nhật review ID: {}", userId, reviewId);
+        log.info("Student (ID Gắn cứng) cập nhật review ID: {}", reviewId);
 
-        var updatedReview = reviewService.updateReview(reviewId, reviewRequestDTO, userId);
+        var updatedReview = reviewService.updateReview(reviewId, reviewRequestDTO);
         ApiResponse response = ApiResponse.builder()
                 .status(HttpStatus.OK.value())
                 .message("Cập nhật đánh giá thành công")
@@ -96,15 +84,14 @@ public class ReviewController {
         return ResponseEntity.ok(response);
     }
 
+
     @DeleteMapping("/{reviewId}")
     public ResponseEntity<ApiResponse> deleteMyReview(
-            @PathVariable Integer reviewId,
-            @AuthenticationPrincipal UserDetails userDetails
+            @PathVariable Integer reviewId
     ) {
-        Integer userId = getAuthenticatedUserId(userDetails);
-        log.info("Student ID {} xóa review ID: {}", userId, reviewId);
+        log.info("Student (ID Gắn cứng) xóa review ID: {}", reviewId);
 
-        reviewService.deleteReview(reviewId, userId);
+        reviewService.deleteReview(reviewId);
         ApiResponse response = ApiResponse.builder()
                 .status(HttpStatus.OK.value())
                 .message("Xóa đánh giá thành công")

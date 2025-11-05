@@ -5,13 +5,14 @@ import com.elearning.modal.dto.response.ReviewResponseDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
+
 public interface ReviewService {
 
-    ReviewResponseDTO createReview(ReviewRequestDTO dto, Integer userId);
-
-    ReviewResponseDTO updateReview(Integer reviewId, ReviewRequestDTO dto, Integer userId);
-    void deleteReview(Integer reviewId, Integer userId);
+    ReviewResponseDTO createReview(ReviewRequestDTO dto);
+    ReviewResponseDTO updateReview(Integer reviewId, ReviewRequestDTO dto);
+    void deleteReview(Integer reviewId);
     void adminDeleteReview(Integer reviewId);
-    Page<ReviewResponseDTO> getReviewsByCourseId(Integer courseId, Pageable pageable);
-    ReviewResponseDTO getMyReviewForCourse(Integer courseId, Integer userId);
+    List<ReviewResponseDTO> getReviewsByCourseId(Integer courseId);
+    ReviewResponseDTO getMyReviewForCourse(Integer courseId);
 }
