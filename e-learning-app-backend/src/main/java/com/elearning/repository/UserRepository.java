@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Integer> {
     Page<User> findAll(Specification<User> spec, Pageable pageable);
@@ -22,4 +23,9 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     List<Object[]> getNewStudentStatsByDateRange(LocalDateTime startDate, LocalDateTime endDate);
 
     Long countByRole(UserRole userRole);
+
+    boolean existsByEmail(String mail);
+    Optional<User> findByUsernameOrEmail(String username, String email);
+
+    boolean existsByUsername(String username);
 }

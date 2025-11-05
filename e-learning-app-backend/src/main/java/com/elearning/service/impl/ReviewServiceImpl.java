@@ -1,11 +1,9 @@
 package com.elearning.service.impl;
 
 import com.elearning.converter.ReviewConverter;
-
 import com.elearning.entity.Course;
 import com.elearning.entity.Review;
 import com.elearning.entity.User;
-
 import com.elearning.exception.ConflictException;
 import com.elearning.exception.ForBiddenException;
 import com.elearning.exception.ResourceNotFoundException;
@@ -18,8 +16,7 @@ import com.elearning.service.ReviewService;
 import com.elearning.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,8 +29,6 @@ import java.util.stream.Collectors;
 public class ReviewServiceImpl implements ReviewService {
 
 
-    private static final Integer HARDCODED_STUDENT_ID = 1;
-
     private final ReviewRepository reviewRepository;
     private final CourseRepository courseRepository;
     private final EnrollmentRepository enrollmentRepository;
@@ -42,16 +37,15 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional
-    public ReviewResponseDTO createReview(ReviewRequestDTO dto) {
-        // Sử dụng ID đã gắn cứng
-        Integer userId = HARDCODED_STUDENT_ID;
-        log.info("Student (ID Gắn cứng: {}) đang tạo review cho khóa học ID {}", userId, dto.getCourseId());
+    public ReviewResponseDTO createReview(ReviewRequestDTO dto, Integer userId) {
+        log.info("Student ID {} đang tạo review cho khóa học ID {}", userId, dto.getCourseId());
 
         if (reviewRepository.findByUserIdAndCourseId(userId, dto.getCourseId()).isPresent()) {
             throw new ConflictException("Bạn đã đánh giá khóa học này rồi.");
         }
 
         if (!enrollmentRepository.existsByUserIdAndCourseId(userId, dto.getCourseId())) {
+            // Sửa lại tên Exception nếu bạn dùng ForbiddenException
             throw new ForBiddenException("Bạn phải tham gia khóa học trước khi đánh giá.");
         }
 
@@ -68,21 +62,18 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional
-    public ReviewResponseDTO updateReview(Integer reviewId, ReviewRequestDTO dto) {
-        Integer userId = HARDCODED_STUDENT_ID;
-        log.info("Student (ID Gắn cứng: {}) đang cập nhật review ID {}", userId, reviewId);
+    public ReviewResponseDTO updateReview(Integer reviewId, ReviewRequestDTO dto, Integer userId) { // <-- SỬA LẠI
+        log.info("Student ID {} đang cập nhật review ID {}", userId, reviewId);
 
         Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new ResourceNotFoundException("Review not found"));
+                .orElseThrow();
 
         if (!review.getUser().getId().equals(userId)) {
             throw new ForBiddenException("Bạn không có quyền sửa đánh giá này.");
         }
-
         if (!review.getCourse().getId().equals(dto.getCourseId())) {
             throw new ConflictException("Không thể thay đổi khóa học của đánh giá.");
         }
-
         reviewConverter.updateEntity(review, dto);
         Review updatedReview = reviewRepository.save(review);
 
@@ -91,16 +82,14 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional
-    public void deleteReview(Integer reviewId) {
-        Integer userId = HARDCODED_STUDENT_ID;
-        log.info("Student (ID Gắn cứng: {}) đang xóa review ID {}", userId, reviewId);
+    public void deleteReview(Integer reviewId, Integer userId) {
+        log.info("Student ID {} đang xóa review ID {}", userId, reviewId);
         Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new ResourceNotFoundException("Review not found"));
+                .orElseThrow();
 
         if (!review.getUser().getId().equals(userId)) {
             throw new ForBiddenException("Bạn không có quyền xóa đánh giá này.");
         }
-
         reviewRepository.delete(review);
         log.info("Student đã xóa review thành công.");
     }
@@ -128,9 +117,8 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional(readOnly = true)
-    public ReviewResponseDTO getMyReviewForCourse(Integer courseId) {
-        Integer userId = HARDCODED_STUDENT_ID;
-        log.info("Student (ID Gắn cứng: {}) đang kiểm tra review cho khóa học ID {}", userId, courseId);
+    public ReviewResponseDTO getMyReviewForCourse(Integer courseId, Integer userId) {
+        log.info("Student ID {} đang kiểm tra review cho khóa học ID {}", userId, courseId);
         Review review = reviewRepository.findByUserIdAndCourseId(userId, courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Review not found"));
         return reviewConverter.toDTO(review);

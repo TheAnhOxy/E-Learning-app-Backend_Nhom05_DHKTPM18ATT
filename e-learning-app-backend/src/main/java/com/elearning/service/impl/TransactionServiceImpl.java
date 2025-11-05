@@ -36,7 +36,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionRepository transactionRepository;
     private final OrderRepository orderRepository;
     private final EnrollmentRepository enrollmentRepository;
-    private final PaymentService paymentService; // Service giả lập
+    private final PaymentService paymentService;
     private final TransactionConverter transactionConverter;
 
     @Override

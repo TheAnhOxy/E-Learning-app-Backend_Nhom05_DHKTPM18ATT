@@ -3,36 +3,33 @@ package com.elearning.controller.student;
 
 import com.elearning.modal.dto.request.CreateOrderRequestDTO;
 import com.elearning.modal.dto.response.ApiResponse;
+import com.elearning.service.CustomUserDetails;
 import com.elearning.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/orders")
 @RequiredArgsConstructor
 @Slf4j
+@PreAuthorize("hasRole('STUDENT')")
 public class OrderController {
+
     private final OrderService orderService;
 
-    private Integer getAuthenticatedUserId() {
-        log.warn("ĐANG GẮN CỨNG USER ID = 1 (student01) ĐỂ TEST");
-        return 1;
-    }
 
-    /**
-     * (Student) Tạo đơn hàng mới, trả về QR Code
-     */
     @PostMapping
     public ResponseEntity<ApiResponse> createOrder(
-            @Valid @RequestBody CreateOrderRequestDTO dto
+            @Valid @RequestBody CreateOrderRequestDTO dto,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Integer userId = getAuthenticatedUserId();
+        Integer userId = userDetails.getId();
         log.info("Student ID {} yêu cầu tạo đơn hàng...", userId);
 
         var responseData = orderService.createOrder(dto, userId);
@@ -45,12 +42,12 @@ public class OrderController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-
     @GetMapping("/{orderId}")
     public ResponseEntity<ApiResponse> getMyOrder(
-            @PathVariable Integer orderId
+            @PathVariable Integer orderId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Integer userId = getAuthenticatedUserId();
+        Integer userId = userDetails.getId();
         log.info("Student ID {} xem chi tiết đơn hàng ID: {}", userId, orderId);
 
         var orderData = orderService.getMyOrderDetails(orderId, userId);
