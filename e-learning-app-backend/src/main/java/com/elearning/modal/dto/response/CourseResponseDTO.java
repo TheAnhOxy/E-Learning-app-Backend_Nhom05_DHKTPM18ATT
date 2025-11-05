@@ -25,4 +25,8 @@ public class CourseResponseDTO {
     private String instructorAvatar;
     private Integer categoryId;
     private String categoryName;
+
+    private Double ratingAvg;
+    private Integer ratingCount;
+    private Integer lessonCount;
 }

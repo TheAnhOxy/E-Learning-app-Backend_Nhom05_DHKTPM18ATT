@@ -10,6 +10,7 @@ import com.elearning.exception.ConflictException;
 import com.elearning.exception.ForBiddenException;
 import com.elearning.exception.ResourceNotFoundException;
 import com.elearning.modal.dto.request.ReviewRequestDTO;
+import com.elearning.modal.dto.response.CourseResponseDTO;
 import com.elearning.modal.dto.response.ReviewResponseDTO;
 import com.elearning.repository.CourseRepository;
 import com.elearning.repository.EnrollmentRepository;
@@ -19,9 +20,13 @@ import com.elearning.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -115,4 +120,23 @@ public class ReviewServiceImpl implements ReviewService {
                 .orElseThrow(() -> new ResourceNotFoundException("Review not found"));
         return reviewConverter.toDTO(review);
     }
+
+    // ---------------- Additional Methods ----------------//
+
+    @Override
+    public Page<ReviewResponseDTO> getAllReviewByCourseId(Integer courseId, int page, int limit) {
+        log.info("Lấy tất cả review cho khóa học ID {} - trang {}, giới hạn {}", courseId, page, limit);
+        Pageable pageable = PageRequest.of(page - 1, limit);
+        Page<Review> reviewPage = reviewRepository.findAllByCourseId(courseId, pageable);
+
+        List<ReviewResponseDTO> reviewDTOs = reviewPage.getContent()
+                .stream()
+                .map(reviewConverter::toDTO)
+                .toList();
+
+        Page<ReviewResponseDTO> dtoPage = new PageImpl<>(reviewDTOs, pageable, reviewPage.getTotalElements());
+        log.info("Đã lấy được {} review cho khóa học ID {}", reviewDTOs.size(), courseId);
+        return dtoPage;
+    }
+
 }

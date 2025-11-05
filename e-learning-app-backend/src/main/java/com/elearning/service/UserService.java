@@ -13,4 +13,8 @@ public interface UserService {
 
 
     User getUserEntityById(Integer id);
+
+    // --------------------------------
+    List<UserResponseDTO> getTopInstructors();
+    UserResponseDTO getTeacherById(Integer id);
 }

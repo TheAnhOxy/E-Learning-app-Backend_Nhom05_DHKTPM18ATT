@@ -3,10 +3,12 @@ package com.elearning.controller.student;
 
 import com.elearning.modal.dto.request.ReviewRequestDTO;
 import com.elearning.modal.dto.response.ApiResponse;
+import com.elearning.modal.dto.response.ReviewResponseDTO;
 import com.elearning.service.ReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
@@ -14,6 +16,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/reviews")
@@ -112,4 +117,28 @@ public class ReviewController {
                 .build();
         return ResponseEntity.ok(response);
     }
+
+    // ---------------------------------------------------
+    @GetMapping("/by-course")
+    public ResponseEntity<?> getAllReviewByCourseId(
+            @RequestParam("course_id") Integer categoryId,
+            @RequestParam(value = "_page", defaultValue = "1") int page,
+            @RequestParam(value = "_limit", defaultValue = "6") int limit) {
+        try {
+            Page<ReviewResponseDTO> reviewPage = reviewService.getAllReviewByCourseId(categoryId, page, limit);
+            if (reviewPage.isEmpty()) {
+                return ResponseEntity.ok("Không có đánh giá nào trong khóa học này.");
+            }
+            return ResponseEntity.ok(Map.of(
+                    "reviews", reviewPage.getContent(),
+                    "total", reviewPage.getTotalElements(),
+                    "page", page,
+                    "limit", limit
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Đã xảy ra lỗi khi lấy đánh giá theo khóa học: " + e.getMessage());
+        }
+    }
+
 }

@@ -2,6 +2,7 @@ package com.elearning.service.impl;
 
 import com.elearning.converter.UserConverter;
 import com.elearning.entity.User;
+import com.elearning.enums.UserRole;
 import com.elearning.exception.ResourceNotFoundException;
 import com.elearning.modal.dto.response.UserResponseDTO;
 import com.elearning.repository.UserRepository;
@@ -40,4 +41,24 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(id)
                 .orElseThrow();
     }
+
+    //----------------- Additional Methods ----------------//
+
+    @Override
+    public List<UserResponseDTO> getTopInstructors() {
+        log.info("Đang lấy top instructors...");
+        List<User> instructors = userRepository.findTop15ByRoleOrderByIdAsc(UserRole.instructor);
+        log.info("Đã lấy {} instructors.", instructors.size());
+        return instructors.stream()
+                .map(userConverter::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public UserResponseDTO getTeacherById(Integer id) {
+        return userRepository.findByIdAndRole(id, UserRole.instructor)
+                .map(userConverter::toDTO)
+                .orElseThrow(() -> new ResourceNotFoundException("Instructor not found with id: " + id));
+    }
+
 }

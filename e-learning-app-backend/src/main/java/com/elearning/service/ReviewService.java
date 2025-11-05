@@ -14,4 +14,6 @@ public interface ReviewService {
     void adminDeleteReview(Integer reviewId);
     Page<ReviewResponseDTO> getReviewsByCourseId(Integer courseId, Pageable pageable);
     ReviewResponseDTO getMyReviewForCourse(Integer courseId, Integer userId);
+
+    Page<ReviewResponseDTO> getAllReviewByCourseId(Integer courseId, int page, int limit);
 }
