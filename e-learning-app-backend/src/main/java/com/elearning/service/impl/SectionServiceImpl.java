@@ -13,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -60,5 +62,16 @@ public class SectionServiceImpl implements SectionService {
         Section section = sectionRepository.findById(id)
                 .orElseThrow();
         return sectionConverter.toDTO(section);
+    }
+
+    // ------------------ Additional Methods ----------------//
+    @Override
+    public List<SectionResponseDTO> getSectionsByCourseId(Integer courseId) {
+        log.info("Đang lấy danh sách chương cho khóa học ID: {}", courseId);
+        List<Section> sections = sectionRepository.findByCourse_Id(courseId);
+        log.info("Đã lấy {} chương.", sections.size());
+        return sections.stream()
+                .map(sectionConverter::toDTO)
+                .toList();
     }
 }

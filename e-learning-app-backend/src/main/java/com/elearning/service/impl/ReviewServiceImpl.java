@@ -127,7 +127,7 @@ public class ReviewServiceImpl implements ReviewService {
     public Page<ReviewResponseDTO> getAllReviewByCourseId(Integer courseId, int page, int limit) {
         log.info("Lấy tất cả review cho khóa học ID {} - trang {}, giới hạn {}", courseId, page, limit);
         Pageable pageable = PageRequest.of(page - 1, limit);
-        Page<Review> reviewPage = reviewRepository.findAllByCourseId(courseId, pageable);
+        Page<Review> reviewPage = reviewRepository.findAllByCourse_IdOrderByCreatedAtDesc(courseId, pageable);
 
         List<ReviewResponseDTO> reviewDTOs = reviewPage.getContent()
                 .stream()

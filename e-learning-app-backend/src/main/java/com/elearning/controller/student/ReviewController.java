@@ -141,4 +141,45 @@ public class ReviewController {
         }
     }
 
+    @PostMapping("/add")
+    public ResponseEntity<?> addReview(@Valid @RequestBody ReviewRequestDTO reviewRequestDTO,
+                                       @RequestParam ("user_id") Integer userId) {
+        try {
+            ReviewResponseDTO createdReview = reviewService.createReview(reviewRequestDTO, userId);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdReview);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Đã xảy ra lỗi khi thêm đánh giá: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/edit/{reviewId}")
+    public ResponseEntity<?> editReview(
+            @PathVariable Integer reviewId,
+            @Valid @RequestBody ReviewRequestDTO reviewRequestDTO,
+            @RequestParam ("user_id") Integer userId) {
+        try {
+            ReviewResponseDTO updatedReview = reviewService.updateReview(reviewId, reviewRequestDTO, userId);
+            return ResponseEntity.ok(updatedReview);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Đã xảy ra lỗi khi cập nhật đánh giá: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/my-review-alt/{courseId}")
+    public ResponseEntity<?> getMyReviewAlt(
+            @PathVariable Integer courseId,
+            @RequestParam ("user_id") Integer userId
+    ) {
+        try {
+            ReviewResponseDTO reviewData = reviewService.getMyReviewForCourse(courseId, userId);
+            return ResponseEntity.ok(reviewData);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Đã xảy ra lỗi khi lấy đánh giá của bạn: " + e.getMessage());
+        }
+    }
+
+
 }
