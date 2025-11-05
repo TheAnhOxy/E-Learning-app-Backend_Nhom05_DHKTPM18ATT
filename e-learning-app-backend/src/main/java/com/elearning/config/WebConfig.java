@@ -9,11 +9,11 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**") // apply for api path
+        registry.addMapping("/**") // Áp dụng cho TẤT CẢ các API
                 // Cho phép 2 Frontend
                 .allowedOrigins(
-                        "http://localhost:8081", // FE Student
-                        "http://localhost:3000"  // FE Dashboard
+                        "http://localhost:8081", // Giao diện Dashboard
+                        "http://localhost:3000"  // Giao diện Student
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                 .allowedHeaders("*")

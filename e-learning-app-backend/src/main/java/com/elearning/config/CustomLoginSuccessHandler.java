@@ -20,9 +20,8 @@ public class CustomLoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
     private final RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
 
-    private final String STUDENT_URL = "http://localhost:8081/"; // Giao diện Student
-    private final String ADMIN_DASHBOARD_URL = "http://localhost:3000/admin/dashboard"; // Dashboard
-    private final String INSTRUCTOR_DASHBOARD_URL = "http://localhost:3000/admin/courses"; // Dashboard
+    private final String STUDENT_URL = "http://localhost:3000/";
+    private final String DASHBOARD_URL = "http://localhost:8081/admin/courses";
 
     @Override
     protected void handle(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
@@ -48,14 +47,11 @@ public class CustomLoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         boolean isStudent = authorities.stream()
                 .anyMatch(auth -> auth.getAuthority().equals("ROLE_STUDENT"));
 
-        if (isAdmin) {
-            log.info("Redirecting Admin to Dashboard (Port 3000)");
-            return ADMIN_DASHBOARD_URL;
-        } else if (isInstructor) {
-            log.info("Redirecting Instructor to Dashboard (Port 3000)");
-            return INSTRUCTOR_DASHBOARD_URL;
+        if (isAdmin || isInstructor) {
+            log.info("Redirecting Admin/Instructor to Dashboard (Port 8081)");
+            return DASHBOARD_URL;
         } else if (isStudent) {
-            log.info("Redirecting Student to Main Site (Port 8081)");
+            log.info("Redirecting Student to Main Site (Port 3000)");
             return STUDENT_URL;
         } else {
             log.warn("User có vai trò không xác định, chuyển về trang chủ.");
