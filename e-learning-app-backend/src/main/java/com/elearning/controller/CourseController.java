@@ -82,7 +82,7 @@ public class CourseController {
         ApiResponse response = ApiResponse.builder()
                 .status(HttpStatus.OK.value())
                 .message("Xóa khóa học thành công")
-                .data(null) 
+                .data(null)
                 .build();
         return new ResponseEntity<>(response, HttpStatus.OK);
     }

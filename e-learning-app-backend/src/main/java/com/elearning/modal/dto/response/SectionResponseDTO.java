@@ -9,9 +9,10 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-class SectionResponseDTO {
+public class SectionResponseDTO {
     private Integer id;
     private String title;
     private Integer orderIndex;
+    private Integer courseId;
     private List<LessonResponseDTO> lessons;
 }
