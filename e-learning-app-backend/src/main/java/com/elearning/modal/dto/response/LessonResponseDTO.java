@@ -12,13 +12,14 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-class LessonResponseDTO {
+public class LessonResponseDTO {
     private Integer id;
     private String title;
     private String provider;
     private String playbackUrl;
     private String videoDescription;
     private Integer durationInSeconds;
+    private Integer sectionId;
     private Long viewsCount;
     private Boolean isFree;
     private Integer orderIndex;
