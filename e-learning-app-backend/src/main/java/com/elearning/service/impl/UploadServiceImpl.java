@@ -18,6 +18,7 @@ public class UploadServiceImpl implements UploadService {
         this.cloudinary = cloudinary;
     }
 
+    @Override
     public String uploadVideo(MultipartFile file) throws IOException {
         Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
                 ObjectUtils.asMap("resource_type", "video"));
