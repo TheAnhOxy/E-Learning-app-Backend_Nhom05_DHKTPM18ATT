@@ -18,7 +18,6 @@ public class TransactionResponseDTO {
     private String paymentMethod;
     private String transactionCode;
     private LocalDateTime createdAt;
-
-    private String userFullName;
-    private String courseTitle;
+//    private String userFullName;
+//    private String courseTitle;
 }

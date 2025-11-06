@@ -1,16 +1,13 @@
 package com.elearning.service.impl;
 
 import com.elearning.converter.ReviewConverter;
-
 import com.elearning.entity.Course;
 import com.elearning.entity.Review;
 import com.elearning.entity.User;
-
 import com.elearning.exception.ConflictException;
 import com.elearning.exception.ForBiddenException;
 import com.elearning.exception.ResourceNotFoundException;
 import com.elearning.modal.dto.request.ReviewRequestDTO;
-import com.elearning.modal.dto.response.CourseResponseDTO;
 import com.elearning.modal.dto.response.ReviewResponseDTO;
 import com.elearning.repository.CourseRepository;
 import com.elearning.repository.EnrollmentRepository;
@@ -23,15 +20,18 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class ReviewServiceImpl implements ReviewService {
+
 
     private final ReviewRepository reviewRepository;
     private final CourseRepository courseRepository;
@@ -49,21 +49,24 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         if (!enrollmentRepository.existsByUserIdAndCourseId(userId, dto.getCourseId())) {
+            // Sửa lại tên Exception nếu bạn dùng ForbiddenException
             throw new ForBiddenException("Bạn phải tham gia khóa học trước khi đánh giá.");
         }
 
         User user = userService.getUserEntityById(userId);
         Course course = courseRepository.findById(dto.getCourseId())
                 .orElseThrow();
+
         Review review = reviewConverter.toEntity(dto, user, course);
         Review savedReview = reviewRepository.save(review);
         log.info("Đã tạo review thành công ID: {}", savedReview.getId());
+
         return reviewConverter.toDTO(savedReview);
     }
 
     @Override
     @Transactional
-    public ReviewResponseDTO updateReview(Integer reviewId, ReviewRequestDTO dto, Integer userId) {
+    public ReviewResponseDTO updateReview(Integer reviewId, ReviewRequestDTO dto, Integer userId) { // <-- SỬA LẠI
         log.info("Student ID {} đang cập nhật review ID {}", userId, reviewId);
 
         Review review = reviewRepository.findById(reviewId)
@@ -77,6 +80,7 @@ public class ReviewServiceImpl implements ReviewService {
         }
         reviewConverter.updateEntity(review, dto);
         Review updatedReview = reviewRepository.save(review);
+
         return reviewConverter.toDTO(updatedReview);
     }
 
@@ -86,6 +90,7 @@ public class ReviewServiceImpl implements ReviewService {
         log.info("Student ID {} đang xóa review ID {}", userId, reviewId);
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow();
+
         if (!review.getUser().getId().equals(userId)) {
             throw new ForBiddenException("Bạn không có quyền xóa đánh giá này.");
         }
@@ -106,10 +111,12 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ReviewResponseDTO> getReviewsByCourseId(Integer courseId, Pageable pageable) {
-        log.info("Lấy danh sách review cho khóa học ID {}", courseId);
-        Page<Review> reviewPage = reviewRepository.findAllByCourseId(courseId, pageable);
-        return reviewPage.map(reviewConverter::toDTO);
+    public List<ReviewResponseDTO> getReviewsByCourseId(Integer courseId) {
+        log.info("Lấy danh sách (không phân trang) review cho khóa học ID {}", courseId);
+        List<Review> reviews = reviewRepository.findAllByCourseIdOrderByCreatedAtDesc(courseId);
+        return reviews.stream()
+                .map(reviewConverter::toDTO)
+                .collect(Collectors.toList());
     }
 
     @Override

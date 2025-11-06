@@ -17,19 +17,19 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class UserController {
 
-    private final UserService userService;
-
-
-    @GetMapping("/search")
-    public ResponseEntity<ApiResponse> testGetAllUsers() {
-        log.info(" Lấy tất cả người dùng...");
-        var usersData = userService.getAllUsers();
-        ApiResponse response = ApiResponse.builder()
-                .status(HttpStatus.OK.value())
-                .message("Lấy " + usersData.size() + " users thành công.")
-                .data(usersData)
-                .build();
-
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
+//    private final UserService userService;
+//
+//
+//    @GetMapping("/search")
+//    public ResponseEntity<ApiResponse> testGetAllUsers() {
+//        log.info(" Lấy tất cả người dùng...");
+//        var usersData = userService.getAllUsers();
+//        ApiResponse response = ApiResponse.builder()
+//                .status(HttpStatus.OK.value())
+//                .message("Lấy " + usersData.size() + " users thành công.")
+//                .data(usersData)
+//                .build();
+//
+//        return new ResponseEntity<>(response, HttpStatus.OK);
+//    }
 }
