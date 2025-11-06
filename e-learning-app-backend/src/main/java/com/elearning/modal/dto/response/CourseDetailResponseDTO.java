@@ -33,5 +33,6 @@ public class CourseDetailResponseDTO {
     private List<SectionResponseDTO> sections;
 
 
-//     private List<ReviewResponseDTO> reviews;
+     private List<ReviewResponseDTO> reviews;
+    private Integer studentCount;
 }

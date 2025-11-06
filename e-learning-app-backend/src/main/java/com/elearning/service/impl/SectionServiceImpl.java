@@ -3,8 +3,8 @@ package com.elearning.service.impl;
 import com.elearning.converter.SectionConverter;
 
 import com.elearning.entity.Section;
-import com.elearning.exception.ResourceNotFoundException;
 import com.elearning.modal.dto.request.SectionRequestDTO;
+import com.elearning.modal.dto.response.LessonResponseDTO;
 import com.elearning.modal.dto.response.SectionResponseDTO;
 import com.elearning.repository.SectionRepository;
 import com.elearning.service.SectionService;
@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +32,35 @@ public class SectionServiceImpl implements SectionService {
         log.info("Đã tạo chương thành công với ID: {}", savedSection.getId());
         return sectionConverter.toDTO(savedSection);
     }
+
+    @Override
+    public List<SectionResponseDTO> getSectionsByCourseId(Integer courseId) {
+        List<Section> sections = sectionRepository.findByCourseId(courseId);
+
+        return sections.stream()
+                .map(section -> SectionResponseDTO.builder()
+                        .id(section.getId())
+                        .title(section.getTitle())
+                        .orderIndex(section.getOrderIndex())
+                        .courseId(section.getCourse().getId())
+                        .lessons(section.getLessons().stream()
+                                .map(lesson -> LessonResponseDTO.builder()
+                                        .id(lesson.getId())
+                                        .title(lesson.getTitle())
+                                        .provider(lesson.getProvider())
+                                        .playbackUrl(lesson.getPlaybackUrl())
+                                        .videoDescription(lesson.getVideoDescription())
+                                        .durationInSeconds(lesson.getDurationInSeconds())
+                                        .sectionId(section.getId())
+                                        .viewsCount(lesson.getViewsCount())
+                                        .isFree(lesson.getIsFree())
+                                        .orderIndex(lesson.getOrderIndex())
+                                        .build())
+                                .toList())
+                        .build())
+                .toList();
+    }
+
 
     @Override
     @Transactional

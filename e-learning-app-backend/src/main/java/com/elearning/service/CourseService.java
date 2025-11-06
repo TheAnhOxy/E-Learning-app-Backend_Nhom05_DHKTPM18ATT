@@ -1,6 +1,7 @@
 package com.elearning.service;
 
 import com.elearning.modal.dto.request.CourseRequestDTO;
+import com.elearning.modal.dto.response.CourseDetailResponseDTO;
 import com.elearning.modal.dto.response.CourseResponseDTO;
 import com.elearning.modal.dto.search.CourseSearchRequest;
 import org.springframework.data.domain.Page;
@@ -13,4 +14,7 @@ public interface CourseService {
     CourseResponseDTO getCourseById(Integer id);
     CourseResponseDTO updateCourse(Integer id, CourseRequestDTO courseRequestDTO);
     void deleteCourse(Integer id);
+    CourseDetailResponseDTO getCourseDetailById(Integer id);
+
+
 }

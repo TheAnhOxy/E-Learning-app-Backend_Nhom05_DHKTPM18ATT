@@ -33,7 +33,11 @@ management:
       exposure:
         include: '*'
 
+cloudinary:
+  url: cloudinary://632641588972872:O1Ik4PlUtr5WZ6-1g6x_xbuLYdU@dwzjxsdli
+
 logging:
   level:
     root: INFO
     org.springframework.data.repository: DEBUG
+

@@ -50,61 +50,76 @@ public class SecurityConfig {
         return new CustomLoginSuccessHandler();
     }
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable)
+//    @Bean
+//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+//        http
+//                .csrf(AbstractHttpConfigurer::disable)
+//
+//                .authorizeHttpRequests(auth -> auth
+//                        .requestMatchers("/login", "/register", "/css/**", "/js/**", "/images/**").permitAll()
+//                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+//                        .requestMatchers(HttpMethod.GET,
+//                                "/categories/**",
+//                                "/courses", // Lấy ds khóa học
+//                                "/courses/popular", // Lấy top khóa học
+//                                "/courses/recommended",
+//                                "/courses/inspiring",
+//                                "/courses/{id}", // Xem chi tiết 1 khóa học
+//                                "/reviews/course/{courseId}", // Xem review của khóa học
+//                                "/users/topTeachers",
+//                                "/lessons/preview/{id}"
+//                        ).permitAll()
+//                        .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+//                        .requestMatchers(
+//                                "/orders/**",       // Tạo và xem đơn hàng
+//                                "/reviews/**",      // Viết, sửa, xóa review của mình
+//                                "/progress/**",     // Cập nhật tiến độ
+//                                "/enrollments/**",  // Lấy khóa học của tôi
+//                                "/my-courses/**",
+//                                "/favorites/**"
+//                        ).hasRole("STUDENT")
+//
+//                        .requestMatchers("/admin/statistics/**").hasAnyRole("INSTRUCTOR", "ADMIN")
+//                        .requestMatchers("/admin/**").hasAnyRole("ADMIN", "INSTRUCTOR")
+//
+//                        .requestMatchers("/admin/users/**").hasRole("ADMIN")
+//                        .anyRequest().authenticated()
+//                )
+//                .formLogin(form -> form
+//                        .loginPage("/login")
+//                        .usernameParameter("usernameOrEmail")
+//                        .passwordParameter("password")
+//                        .loginProcessingUrl("/login-process")
+//                        .successHandler(myAuthenticationSuccessHandler())
+//                        .failureUrl("/login?error=true")
+//                        .permitAll()
+//                )
+//                .logout(logout -> logout
+//                        .logoutUrl("/logout")
+//                        .logoutSuccessUrl("/login?logout=true")
+//                        .invalidateHttpSession(true)
+//                        .deleteCookies("JSESSIONID")
+//                        .permitAll()
+//                )
+//                .exceptionHandling(ex -> ex
+//                        .accessDeniedPage("/access-denied")
+//                );
+//
+//        return http.build();
+//    }
+@Bean
+public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http
+            .csrf(AbstractHttpConfigurer::disable)
 
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/register", "/css/**", "/js/**", "/images/**").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .requestMatchers(HttpMethod.GET,
-                                "/categories/**",
-                                "/courses", // Lấy ds khóa học
-                                "/courses/popular", // Lấy top khóa học
-                                "/courses/recommended",
-                                "/courses/inspiring",
-                                "/courses/{id}", // Xem chi tiết 1 khóa học
-                                "/reviews/course/{courseId}", // Xem review của khóa học
-                                "/users/topTeachers",
-                                "/lessons/preview/{id}"
-                        ).permitAll()
-                        .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
-                        .requestMatchers(
-                                "/orders/**",       // Tạo và xem đơn hàng
-                                "/reviews/**",      // Viết, sửa, xóa review của mình
-                                "/progress/**",     // Cập nhật tiến độ
-                                "/enrollments/**",  // Lấy khóa học của tôi
-                                "/my-courses/**",
-                                "/favorites/**"
-                        ).hasRole("STUDENT")
+            .authorizeHttpRequests(auth -> auth
+                    // === TẠM THỜI MỞ TẤT CẢ API ĐỂ TEST ===
+                    .requestMatchers("/**").permitAll()
+            );
 
-                        .requestMatchers("/admin/statistics/**").hasAnyRole("INSTRUCTOR", "ADMIN")
-                        .requestMatchers("/admin/**").hasAnyRole("ADMIN", "INSTRUCTOR")
+    // (Toàn bộ phần .formLogin() và .logout() không cần thiết
+    // khi đã .permitAll() ở trên, nhưng để đó cũng không sao)
 
-                        .requestMatchers("/admin/users/**").hasRole("ADMIN")
-                        .anyRequest().authenticated()
-                )
-                .formLogin(form -> form
-                        .loginPage("/login")
-                        .usernameParameter("usernameOrEmail")
-                        .passwordParameter("password")
-                        .loginProcessingUrl("/login-process")
-                        .successHandler(myAuthenticationSuccessHandler())
-                        .failureUrl("/login?error=true")
-                        .permitAll()
-                )
-                .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessUrl("/login?logout=true")
-                        .invalidateHttpSession(true)
-                        .deleteCookies("JSESSIONID")
-                        .permitAll()
-                )
-                .exceptionHandling(ex -> ex
-                        .accessDeniedPage("/access-denied")
-                );
-
-        return http.build();
-    }
+    return http.build();
+}
 }
