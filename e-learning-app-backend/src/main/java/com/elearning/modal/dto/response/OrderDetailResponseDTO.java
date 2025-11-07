@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.List;
 
-// DTO chi tiết đầy đủ của một đơn hàng
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

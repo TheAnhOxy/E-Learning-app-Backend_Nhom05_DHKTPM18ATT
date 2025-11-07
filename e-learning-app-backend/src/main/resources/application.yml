@@ -19,6 +19,10 @@ spring:
         format_sql: true
       hibernate.jdbc.lob.non_contextual_creation: true
 
+
+  cloudinary:
+    url: cloudinary://632641588972872:O1Ik4PlUtr5WZ6-1g6x_xbuLYdU@dwzjxsdli
+
 management:
   endpoints:
     web:

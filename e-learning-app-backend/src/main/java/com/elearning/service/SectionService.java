@@ -10,6 +10,8 @@ public interface SectionService {
     SectionResponseDTO updateSection(Integer id, SectionRequestDTO sectionRequestDTO);
     void deleteSection(Integer id);
     SectionResponseDTO getSectionById(Integer id);
-
     List<SectionResponseDTO> getSectionsByCourseId(Integer courseId);
+
+    // ------------------ Additional Methods ----------------//
+    List<SectionResponseDTO> getSectionsByCourse(Integer courseId);
 }

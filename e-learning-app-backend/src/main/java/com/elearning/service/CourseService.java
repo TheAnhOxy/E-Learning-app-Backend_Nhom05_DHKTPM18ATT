@@ -1,6 +1,7 @@
 package com.elearning.service;
 
 import com.elearning.modal.dto.request.CourseRequestDTO;
+import com.elearning.modal.dto.response.CourseDetailResponseDTO;
 import com.elearning.modal.dto.response.CourseResponseDTO;
 import com.elearning.modal.dto.response.MyCourseResponseDTO;
 import com.elearning.modal.dto.search.CourseSearchRequest;
@@ -16,12 +17,11 @@ public interface CourseService {
     CourseResponseDTO getCourseById(Integer id);
     CourseResponseDTO updateCourse(Integer id, CourseRequestDTO courseRequestDTO);
     void deleteCourse(Integer id);
-
-    // --------------------------------
     List<CourseResponseDTO> getRecommendedCourses();
     List<CourseResponseDTO> getPopularCourses();
     List<CourseResponseDTO> getInspiringCourses();
     Page<CourseResponseDTO> getCoursesByCategoryId(Integer categoryId, int page, int limit);
     Page<CourseResponseDTO> getCourseByTeacherId(Integer instructorId, int page, int limit);
     Page<MyCourseResponseDTO> getCoursesByStudentId(Integer userId, int page, int limit);
+    CourseDetailResponseDTO getCourseDetailById(Integer id);
 }

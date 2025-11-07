@@ -21,7 +21,7 @@ public class SectionController {
     @GetMapping("/by-course")
     public ResponseEntity<?> getSectionsByCourse(
             @RequestParam("course_id") Integer courseId) {
-        List<SectionResponseDTO> sections = sectionService.getSectionsByCourseId(courseId);
+        List<SectionResponseDTO> sections = sectionService.getSectionsByCourse(courseId);
         if (sections.isEmpty()) {
             return ResponseEntity.status(HttpStatus.OK).body("Không có phần nào trong khóa học này.");
         }

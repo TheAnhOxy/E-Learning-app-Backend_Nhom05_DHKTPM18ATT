@@ -1,4 +1,4 @@
-package com.elearning.config;
+package com.elearning.config; // (Đảm bảo đúng package của bạn)
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;

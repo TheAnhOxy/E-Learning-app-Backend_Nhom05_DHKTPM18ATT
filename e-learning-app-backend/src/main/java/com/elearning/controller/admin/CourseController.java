@@ -4,6 +4,7 @@ import com.elearning.modal.dto.request.CourseRequestDTO;
 import com.elearning.modal.dto.response.ApiResponse;
 import com.elearning.modal.dto.search.CourseSearchRequest;
 import com.elearning.service.CourseService;
+import com.elearning.service.SectionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 public class CourseController {
 
     private final CourseService courseService;
+    private final SectionService sectionService;
 
     @PostMapping
     public ResponseEntity<ApiResponse> createCourse(@Valid @RequestBody CourseRequestDTO courseRequestDTO) {
@@ -31,6 +33,17 @@ public class CourseController {
                 .data(courseData)
                 .build();
         return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/{courseId}/sections")
+    public ResponseEntity<ApiResponse> getSectionsByCourse(@PathVariable Integer courseId) {
+        var sections = sectionService.getSectionsByCourseId(courseId);
+        ApiResponse response = ApiResponse.builder()
+                .status(HttpStatus.OK.value())
+                .message("Lấy danh sách chương thành công")
+                .data(sections)
+                .build();
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping
@@ -49,13 +62,13 @@ public class CourseController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse> getCourseById(@PathVariable Integer id) {
+    public ResponseEntity<ApiResponse> getCourseDetail(@PathVariable Integer id) {
         log.info("Nhận yêu cầu lấy chi tiết khóa học ID: {}", id);
-        var courseData = courseService.getCourseById(id);
+        var courseDetailData = courseService.getCourseDetailById(id);
         ApiResponse response = ApiResponse.builder()
                 .status(HttpStatus.OK.value())
                 .message("Lấy chi tiết khóa học thành công")
-                .data(courseData)
+                .data(courseDetailData)
                 .build();
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
