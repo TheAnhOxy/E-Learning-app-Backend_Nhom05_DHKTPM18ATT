@@ -8,6 +8,7 @@ import com.elearning.entity.*;
 import com.elearning.exception.ForBiddenException;
 import com.elearning.exception.ResourceNotFoundException;
 import com.elearning.modal.dto.request.NotificationRequestDTO;
+import com.elearning.modal.dto.request.RegisterRequestDTO;
 import com.elearning.modal.dto.request.StudentUpdateRequestDTO;
 import com.elearning.modal.dto.response.StudentDetailResponseDTO;
 import com.elearning.modal.dto.response.StudentResponseDTO;
@@ -23,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -42,6 +44,8 @@ public class UserServiceImpl implements UserService {
     private final EnrollmentRepository enrollmentRepository;
     private final QuizAttemptRepository quizAttemptRepository;
     private final CertificateRepository certificateRepository;
+    private final PasswordEncoder passwordEncoder;
+
 
     @Override
     @Transactional(readOnly = true)
@@ -189,4 +193,23 @@ public class UserServiceImpl implements UserService {
         log.info("Đã gửi thông báo thành công.");
     }
 
+    @Override
+    public User registerStudent(RegisterRequestDTO request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new IllegalArgumentException("Email đã tồn tại");
+        }
+
+        User user = new User();
+        user.setUsername(request.getUsername());
+        user.setFullName(request.getFullName());
+        user.setEmail(request.getEmail());
+
+        // Mã hóa mật khẩu
+        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+
+        user.setRole(UserRole.student); // mặc định là student
+        user.setAvatarUrl(request.getAvatarUrl() != null ? request.getAvatarUrl() : "https://via.placeholder.com/50");
+
+        return userRepository.save(user);
+    }
 }
