@@ -18,6 +18,17 @@ public class TransactionConverter {
         if (entity.getOrder() != null) {
             dto.setOrderId(entity.getOrder().getId());
         }
+        if (entity.getOrder() != null && entity.getOrder().getUser() != null) {
+            dto.setUserFullName(entity.getOrder().getUser().getFullName());
+            dto.setUserAvatarUrl(entity.getOrder().getUser().getAvatarUrl());
+        }
+
+        if (entity.getOrder() != null && entity.getOrder().getCourse() != null) {
+            dto.setCourseId(entity.getOrder().getCourse().getId());
+            dto.setCourseTitle(entity.getOrder().getCourse().getTitle());
+        }
         return dto;
     }
+
+
 }

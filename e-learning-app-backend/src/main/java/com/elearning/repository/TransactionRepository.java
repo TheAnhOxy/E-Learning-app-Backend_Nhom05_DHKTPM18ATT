@@ -14,7 +14,7 @@ import java.util.List;
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Integer>, JpaSpecificationExecutor<Transaction> {
 
-    List<Transaction> findAllByOrderIdOrderByCreatedAtDesc(Integer orderId);
+//    List<Transaction> findAllByOrderIdOrderByCreatedAtDesc(Integer orderId);
 
     @Query("SELECT SUM(t.amount) FROM Transaction t WHERE t.status = 'success'")
     BigDecimal findTotalRevenue();
@@ -26,4 +26,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
             "GROUP BY CAST(t.createdAt AS DATE) " +
             "ORDER BY CAST(t.createdAt AS DATE) ASC")
     List<Object[]> getRevenueStatsByDateRange(LocalDateTime startDate, LocalDateTime endDate);
+
+    @Query("SELECT t FROM Transaction t JOIN FETCH t.order o JOIN FETCH o.user JOIN FETCH o.course WHERE t.order.id = :orderId ORDER BY t.createdAt DESC")
+    List<Transaction> findAllByOrderIdOrderByCreatedAtDesc(Integer orderId);
 }

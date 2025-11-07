@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -50,6 +51,34 @@ public class AdminOrderController {
                 .status(HttpStatus.OK.value())
                 .message("Lấy chi tiết đơn hàng thành công")
                 .data(orderData)
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{orderId}/complete")
+    public ResponseEntity<ApiResponse> markAsCompleted(
+            @PathVariable Integer orderId
+    ) {
+        log.info("Admin đánh dấu hoàn thành đơn hàng ID: {}", orderId);
+        orderService.markOrderAsCompleted(orderId);
+        ApiResponse response = ApiResponse.builder()
+                .status(HttpStatus.OK.value())
+                .message("Đánh dấu đơn hàng hoàn thành thành công")
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+
+    @DeleteMapping("/{orderId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse> deleteOrder(
+            @PathVariable Integer orderId
+    ) {
+        log.info("Admin xóa đơn hàng ID: {}", orderId);
+        orderService.deleteOrder(orderId);
+        ApiResponse response = ApiResponse.builder()
+                .status(HttpStatus.OK.value())
+                .message("Xóa đơn hàng thành công")
                 .build();
         return ResponseEntity.ok(response);
     }

@@ -16,6 +16,7 @@ import com.elearning.repository.OrderRepository;
 import com.elearning.repository.TransactionRepository;
 import com.elearning.service.PaymentService;
 import com.elearning.service.TransactionService;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,21 +44,50 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional(readOnly = true)
     public Page<TransactionResponseDTO> searchTransactions(TransactionSearchRequest searchRequest, Pageable pageable) {
-        log.info("Admin tìm kiếm giao dịch...");
-
+        log.info("Admin tìm kiếm giao dịch với: {}", searchRequest.toString());
         Specification<Transaction> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-            // (Thêm logic filter cho TransactionSearchRequest )
+            var orderJoin = root.join("order");
             if (searchRequest.getStatus() != null) {
                 predicates.add(cb.equal(root.get("status"), searchRequest.getStatus()));
             }
-            if (searchRequest.getPaymentMethod() != null) {
+            if (StringUtils.hasText(searchRequest.getPaymentMethod())) {
                 predicates.add(cb.equal(root.get("paymentMethod"), searchRequest.getPaymentMethod()));
             }
-            // (Thêm filter theo ngày...)
+            if (searchRequest.getFromDate() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("createdAt"), searchRequest.getFromDate().atStartOfDay()));
+            }
+            if (searchRequest.getToDate() != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("createdAt"), searchRequest.getToDate().atTime(23, 59, 59)));
+            }
+            if (searchRequest.getUserId() != null) {
+                predicates.add(cb.equal(orderJoin.join("user").get("id"), searchRequest.getUserId()));
+            }
+            if (StringUtils.hasText(searchRequest.getQuery())) {
+                String queryLower = "%" + searchRequest.getQuery().toLowerCase() + "%";
+
+                Predicate byUserName = cb.like(cb.lower(orderJoin.join("user").get("fullName")), queryLower);
+                Predicate byCourseName = cb.like(cb.lower(orderJoin.join("course").get("title")), queryLower);
+                Predicate byTransactionCode = cb.like(cb.lower(root.get("transactionCode")), queryLower);
+
+                Predicate byTransactionId = cb.conjunction();
+                try {
+                    Integer queryId = Integer.parseInt(searchRequest.getQuery());
+                    byTransactionId = cb.equal(root.get("id"), queryId);
+                } catch (NumberFormatException e) {
+                }
+
+                predicates.add(cb.or(byUserName, byCourseName, byTransactionCode, byTransactionId));
+            }
+            if (query.getResultType() != Long.class && query.getResultType() != long.class) {
+                root.fetch("order", JoinType.LEFT)
+                        .fetch("user", JoinType.LEFT);
+                root.fetch("order", JoinType.LEFT)
+                        .fetch("course", JoinType.LEFT);
+            }
+
             return cb.and(predicates.toArray(new Predicate[0]));
         };
-
         Page<Transaction> transactionPage = transactionRepository.findAll(spec, pageable);
         return transactionPage.map(transactionConverter::toDTO);
     }

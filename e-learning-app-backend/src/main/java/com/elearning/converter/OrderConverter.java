@@ -39,7 +39,7 @@ public class OrderConverter {
         OrderDetailResponseDTO dto = modelMapper.map(entity, OrderDetailResponseDTO.class);
         if (entity.getUser() != null) {
             dto.setUserId(entity.getUser().getId());
-            dto.setUserFullName(entity.getUser().getFullName());
+            dto.setUserName(entity.getUser().getFullName());
         }
         if (entity.getCourse() != null) {
             dto.setCourseId(entity.getCourse().getId());

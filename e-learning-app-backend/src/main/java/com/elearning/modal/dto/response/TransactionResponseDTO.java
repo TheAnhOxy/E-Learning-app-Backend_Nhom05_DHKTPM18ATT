@@ -20,4 +20,8 @@ public class TransactionResponseDTO {
     private LocalDateTime createdAt;
 //    private String userFullName;
 //    private String courseTitle;
+private String userFullName;
+    private String userAvatarUrl;
+    private Integer courseId;
+    private String courseTitle;
 }
