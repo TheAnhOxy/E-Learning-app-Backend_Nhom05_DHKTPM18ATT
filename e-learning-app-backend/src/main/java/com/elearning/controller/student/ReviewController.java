@@ -140,6 +140,7 @@ public class ReviewController {
     }
 
     @PostMapping("/add")
+//    @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<?> addReview(@Valid @RequestBody ReviewRequestDTO reviewRequestDTO,
                                        @RequestParam ("user_id") Integer userId) {
         try {
@@ -152,6 +153,7 @@ public class ReviewController {
     }
 
     @PutMapping("/edit/{reviewId}")
+//    @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<?> editReview(
             @PathVariable Integer reviewId,
             @Valid @RequestBody ReviewRequestDTO reviewRequestDTO,
@@ -166,6 +168,7 @@ public class ReviewController {
     }
 
     @GetMapping("/my-review-alt/{courseId}")
+//    @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<?> getMyReviewAlt(
             @PathVariable Integer courseId,
             @RequestParam ("user_id") Integer userId

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Integer>, JpaSpecificationExecutor<Transaction> {
@@ -26,4 +27,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
             "GROUP BY CAST(t.createdAt AS DATE) " +
             "ORDER BY CAST(t.createdAt AS DATE) ASC")
     List<Object[]> getRevenueStatsByDateRange(LocalDateTime startDate, LocalDateTime endDate);
+
+    Optional<Transaction> findByOrder_Id(Integer id);
 }

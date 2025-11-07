@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer> {
@@ -29,4 +30,6 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer>
             "AND e.course.instructor.id = :instructorId")
     boolean isStudentEnrolledInInstructorCourses(@Param("studentId") Integer studentId,
                                                  @Param("instructorId") Integer instructorId);
+
+    Optional<Enrollment> findByUserIdAndCourseId(Integer userId, Integer courseId);
 }

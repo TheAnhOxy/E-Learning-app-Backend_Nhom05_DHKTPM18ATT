@@ -14,10 +14,7 @@ import com.elearning.enums.TransactionStatus;
 import com.elearning.exception.ConflictException;
 import com.elearning.exception.ResourceNotFoundException;
 import com.elearning.modal.dto.request.CreateOrderRequestDTO;
-import com.elearning.modal.dto.response.CreateOrderResponseDTO;
-import com.elearning.modal.dto.response.OrderDetailResponseDTO;
-import com.elearning.modal.dto.response.OrderResponseDTO;
-import com.elearning.modal.dto.response.TransactionResponseDTO;
+import com.elearning.modal.dto.response.*;
 import com.elearning.modal.dto.search.OrderSearchRequest;
 import com.elearning.repository.CourseRepository;
 import com.elearning.repository.EnrollmentRepository;
@@ -108,6 +105,47 @@ public class OrderServiceImpl implements OrderService {
         return paymentService.createPaymentRequest(savedTransaction);
     }
 
+    // OrderServiceImpl.java
+    @Override
+    @Transactional
+    public CreateOrderResponseDTO createOrderAndEnroll(CreateOrderRequestDTO dto, Integer userId) {
+        log.info("Student ID {} thanh toán thành công cho khóa học ID {}", userId, dto.getCourseId());
+
+        if (enrollmentRepository.existsByUserIdAndCourseId(userId, dto.getCourseId())) {
+            throw new ConflictException("Bạn đã sở hữu khóa học này.");
+        }
+
+        User user = userService.getUserEntityById(userId);
+        Course course = courseRepository.findById(dto.getCourseId())
+                .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
+
+        // TẠO ORDER COMPLETED
+        Order order = new Order();
+        order.setUser(user);
+        order.setCourse(course);
+        order.setAmount(course.getPrice());
+        order.setStatus(OrderStatus.completed);
+        Order savedOrder = orderRepository.save(order);
+
+        // TẠO ENROLLMENT
+        Enrollment enrollment = new Enrollment();
+        enrollment.setUser(user);
+        enrollment.setCourse(course);
+        enrollment.setOrder(savedOrder);
+        enrollment.setEnrollmentDate(LocalDateTime.now());
+        enrollmentRepository.save(enrollment);
+
+        log.info("Đã tạo Order ID {} (completed) và ghi danh thành công.", savedOrder.getId());
+
+        return CreateOrderResponseDTO.builder()
+                .orderId(savedOrder.getId())
+                .transactionId(null)
+                .amount(course.getPrice())
+                .orderStatus(OrderStatus.completed)
+                .qrCodeData(null)
+                .build();
+    }
+
     @Override
     @Transactional(readOnly = true)
     public OrderDetailResponseDTO getMyOrderDetails(Integer orderId, Integer userId) {
@@ -148,5 +186,38 @@ public class OrderServiceImpl implements OrderService {
         Page<Order> orderPage = orderRepository.findAll(spec, pageable);
 
         return orderPage.map(orderConverter::toDTO);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PendingOrderCheckResponse checkPendingOrder(Integer courseId, Integer userId) {
+        log.info("Kiểm tra đơn hàng PENDING cho User ID {} và Course ID {}", userId, courseId);
+
+        Order pendingOrder = orderRepository
+                .findByUserIdAndCourseIdAndStatus(userId, courseId, OrderStatus.pending)
+                .orElse(null);
+
+        if (pendingOrder == null) {
+            return PendingOrderCheckResponse.builder()
+                    .hasPending(false)
+                    .build();
+        }
+
+        // Tìm Transaction
+        Transaction transaction = transactionRepository
+                .findByOrder_Id(pendingOrder.getId())
+                .orElse(null);
+
+        String qrCodeData = null;
+        if (transaction != null) {
+            qrCodeData = paymentService.createPaymentRequest(transaction).getQrCodeData();
+        }
+
+        return PendingOrderCheckResponse.builder()
+                .hasPending(true)
+                .orderId(pendingOrder.getId())
+                .transactionId(transaction != null ? transaction.getId() : null)
+                .qrCodeData(qrCodeData)
+                .build();
     }
 }

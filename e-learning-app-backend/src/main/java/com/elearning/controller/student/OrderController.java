@@ -3,6 +3,7 @@ package com.elearning.controller.student;
 
 import com.elearning.modal.dto.request.CreateOrderRequestDTO;
 import com.elearning.modal.dto.response.ApiResponse;
+import com.elearning.modal.dto.response.PendingOrderCheckResponse;
 import com.elearning.service.CustomUserDetails;
 import com.elearning.service.OrderService;
 import jakarta.validation.Valid;
@@ -18,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/orders")
 @RequiredArgsConstructor
 @Slf4j
-@PreAuthorize("hasRole('STUDENT')")
+//@PreAuthorize("hasRole('STUDENT')")
 public class OrderController {
 
     private final OrderService orderService;
@@ -40,6 +41,24 @@ public class OrderController {
                 .data(responseData)
                 .build();
         return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/complete-payment")
+    public ResponseEntity<ApiResponse> completePayment(
+            @Valid @RequestBody CreateOrderRequestDTO dto,
+            @RequestParam Integer user_id
+    ) {
+        log.info("Giả lập thanh toán thành công cho User ID {}", user_id);
+
+        var responseData = orderService.createOrderAndEnroll(dto, user_id);
+
+        return ResponseEntity.ok(
+                ApiResponse.builder()
+                        .status(HttpStatus.OK.value())
+                        .message("Thanh toán thành công! Bạn đã sở hữu khóa học.")
+                        .data(responseData)
+                        .build()
+        );
     }
 
     @GetMapping("/{orderId}")

@@ -2,9 +2,13 @@ package com.elearning.controller.student;
 
 import com.elearning.modal.dto.response.CourseResponseDTO;
 import com.elearning.modal.dto.response.MyCourseResponseDTO;
+import com.elearning.modal.dto.search.CourseSearchRequest;
 import com.elearning.service.CourseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -125,4 +129,14 @@ public class CourseController {
         }
     }
 
+    @PostMapping("/search")
+    public ResponseEntity<Page<CourseResponseDTO>> searchCourses(
+            @RequestBody CourseSearchRequest searchRequest,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        Page<CourseResponseDTO> result = courseService.searchCourses(searchRequest, pageable);
+        return ResponseEntity.ok(result);
+    }
 }
