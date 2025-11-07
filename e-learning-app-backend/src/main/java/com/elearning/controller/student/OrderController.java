@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/orders")
 @RequiredArgsConstructor
 @Slf4j
-//@PreAuthorize("hasRole('STUDENT')")
+@PreAuthorize("hasRole('STUDENT')")
 public class OrderController {
 
     private final OrderService orderService;

@@ -66,25 +66,27 @@ public class SecurityConfig {
                                 "/courses/popular", // Lấy top khóa học
                                 "/courses/recommended",
                                 "/courses/inspiring",
-                                "/courses/{id}", // Xem chi tiết 1 khóa học
+                                "/courses/{id}",
+                                "/courses/search",// Xem chi tiết 1 khóa học
+                                "/courses/by-instructor",
                                 "/reviews/course/{courseId}", // Xem review của khóa học OXY
                                 "/reviews/by-course", // Xem review của khóa học (dùng cho trang course detail)
                                 "/users/**",
-                                "/lessons/preview/{id}",
-
-                                "/enrollments/check" //Tạm thời thôi để test
+                                "/lessons/**",
+                                "/sections/**",
+                                "/progress/**",
+                                "/enrollments/**"
                         ).permitAll()
-                        .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/orders/**").permitAll() // Cho phép tạo đơn hàng để test khi chưa có login
+                        .requestMatchers("/api/auth/**", "/users/register").permitAll()
                         .requestMatchers(
                                 "/orders/**",       // Tạo và xem đơn hàng
                                 "/reviews/**",      // Viết, sửa, xóa review của mình
-                                "/progress/**",     // Cập nhật tiến độ
+                                "/progress/**",      // Cập nhật tiến độ
+                                "/courses/**",
                                 "/enrollments/**",  // Lấy khóa học của tôi
-                                "/my-courses/**",
+                                "/courses/my-courses",
                                 "/favorites/**"
                         ).hasRole("STUDENT")
-
                         .requestMatchers("/admin/statistics/**").hasAnyRole("INSTRUCTOR", "ADMIN")
                         .requestMatchers("/admin/**").hasAnyRole("ADMIN", "INSTRUCTOR")
 
