@@ -19,4 +19,10 @@ public class ReviewResponseDTO {
     private Integer userId;
     private String userFullName;
     private String userAvatarUrl;
+
+//    private String replyText;
+//    private LocalDateTime repliedAt;
+//    private String repliedByFullName;
+//    private String repliedByAvatarUrl;
+
 }

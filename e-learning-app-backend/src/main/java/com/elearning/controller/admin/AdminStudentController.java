@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/admin/students")
 @RequiredArgsConstructor
 @Slf4j
-@PreAuthorize("hasAnyRole('ADMIN', 'INSTRUCTOR')")
+//@PreAuthorize("hasAnyRole('ADMIN', 'INSTRUCTOR')")
 public class AdminStudentController {
 
     private final UserService userService;
