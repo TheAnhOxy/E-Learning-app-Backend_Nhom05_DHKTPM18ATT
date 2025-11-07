@@ -4,6 +4,7 @@ package com.elearning.service;
 import com.elearning.entity.User;
 import com.elearning.modal.dto.request.NotificationRequestDTO;
 import com.elearning.modal.dto.request.StudentUpdateRequestDTO;
+import com.elearning.modal.dto.request.UserRequestDTO;
 import com.elearning.modal.dto.response.StudentDetailResponseDTO;
 import com.elearning.modal.dto.response.StudentResponseDTO;
 import com.elearning.modal.dto.search.StudentSearchRequest;
@@ -24,4 +25,5 @@ public interface UserService {
     void deleteStudent(Integer userId, CustomUserDetails currentUser);
 
     void sendNotificationToStudent(Integer userId, NotificationRequestDTO dto, CustomUserDetails currentUser);
+    StudentResponseDTO createUser(UserRequestDTO dto, CustomUserDetails currentUser);
 }

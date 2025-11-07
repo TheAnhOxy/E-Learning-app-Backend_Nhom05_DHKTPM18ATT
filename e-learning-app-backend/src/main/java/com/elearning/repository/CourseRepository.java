@@ -16,16 +16,16 @@ import java.util.Optional;
 @Repository
 public interface CourseRepository extends JpaRepository<Course, Integer>, JpaSpecificationExecutor<Course> {
 
-
-    @Query("SELECT new com.elearning.modal.dto.response.TopCourseResponseDTO(c.id, c.title, c.thumbnailUrl, SUM(t.amount)) " +
+    Long countByInstructorId(Integer instructorId);
+    @Query("SELECT NEW com.elearning.modal.dto.response.TopCourseResponseDTO(c.id, c.title, c.thumbnailUrl, SUM(t.amount)) " +
             "FROM Transaction t " +
             "JOIN t.order o " +
             "JOIN o.course c " +
-            "WHERE t.status = 'success' " +
+            "WHERE t.status = 'success' AND t.amount > 0 " +
             "GROUP BY c.id, c.title, c.thumbnailUrl " +
             "ORDER BY SUM(t.amount) DESC")
     List<TopCourseResponseDTO> findTopCoursesByRevenue(Pageable pageable);
-
+    List<Course> findAllByInstructorId(Integer instructorId);
 
     @Query("SELECT new com.elearning.modal.dto.response.TopCourseResponseDTO(c.id, c.title, c.thumbnailUrl, COUNT(e.id)) " +
             "FROM Enrollment e " +
@@ -45,4 +45,25 @@ public interface CourseRepository extends JpaRepository<Course, Integer>, JpaSpe
     Optional<Course> findDetailedById(Integer id);
     @Query("SELECT COUNT(e) FROM Enrollment e WHERE e.course.id = :courseId")
     int countStudentsByCourse(@Param("courseId") Integer courseId);
+
+    @Query("SELECT NEW com.elearning.modal.dto.response.TopCourseResponseDTO(c.id, c.title, c.thumbnailUrl, SUM(t.amount)) " +
+            "FROM Transaction t " +
+            "JOIN t.order o " +
+            "JOIN o.course c " +
+            "WHERE t.status = 'success' AND t.amount > 0 AND c.instructor.id = :instructorId " +
+            "GROUP BY c.id, c.title, c.thumbnailUrl " +
+            "ORDER BY SUM(t.amount) DESC")
+    List<TopCourseResponseDTO> findTopCoursesByRevenueAndInstructor(@Param("instructorId") Integer instructorId, Pageable pageable);
+
+    @Query("SELECT NEW com.elearning.modal.dto.response.TopCourseResponseDTO(c.id, c.title, c.thumbnailUrl, COUNT(e.id)) " +
+            "FROM Enrollment e " +
+            "JOIN e.course c " +
+            "WHERE c.instructor.id = :instructorId " +
+            "GROUP BY c.id, c.title, c.thumbnailUrl " +
+            "ORDER BY COUNT(e.id) DESC")
+    List<TopCourseResponseDTO> findTopCoursesByEnrollmentAndInstructor(@Param("instructorId") Integer instructorId, Pageable pageable);
+
+
+
+
 }

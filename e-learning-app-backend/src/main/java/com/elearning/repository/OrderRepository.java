@@ -4,6 +4,7 @@ import com.elearning.entity.Order;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
@@ -14,4 +15,9 @@ public interface OrderRepository extends JpaRepository<Order, Integer>, JpaSpeci
 
     @Query("SELECT o FROM Order o JOIN FETCH o.user JOIN FETCH o.course WHERE o.id = :orderId")
     Optional<Order> findOrderByIdWithDetails(Integer orderId);
+
+    @Query("SELECT COUNT(o.id) " +
+            "FROM Order o " +
+            "WHERE o.course.instructor.id = :instructorId")
+    Long countByInstructorId(@Param("instructorId") Integer instructorId);
 }

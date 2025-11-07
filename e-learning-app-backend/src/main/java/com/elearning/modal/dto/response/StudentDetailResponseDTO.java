@@ -2,6 +2,8 @@ package com.elearning.modal.dto.response;
 
 import com.elearning.enums.UserRole;
 import lombok.Data;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -23,4 +25,10 @@ public class StudentDetailResponseDTO {
     private List<EnrolledCourseResponseDTO> enrolledCourses;
     private List<QuizAttemptResponseDTO> quizAttempts;
     private List<CertificateResponseDTO> certificates;
+
+    private BigDecimal totalRevenue;
+    private Long totalCoursesCreated;
+    private Long totalStudentsTaught;
+
+    private List<CourseBriefResponseDTO> createdCourses;
 }
