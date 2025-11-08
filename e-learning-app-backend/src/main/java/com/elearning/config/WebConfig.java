@@ -7,29 +7,13 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-//    @Override
-//    public void addCorsMappings(CorsRegistry registry) {
-//        registry.addMapping("/**") // Áp dụng cho TẤT CẢ các API (vd: /admin/**, /api/v1/**)
-//
-//                // --- SỬA Ở ĐÂY ---
-//                // Dùng .allowedOriginPatterns(...) thay vì .allowedOrigins(...)
-//                // để hỗ trợ nhiều origins khi allowCredentials(true)
-//                .allowedOriginPatterns(
-//                        "http://localhost:8081", // Giao diện Dashboard (Expo) của bạn
-//                        "http://localhost:3000"  // Giao diện Student (Dự phòng)
-//                )
-//
-//                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
-//                .allowedHeaders("*")
-//                .allowCredentials(true);
-//    }
-// WebConfig.java
-@Override
-public void addCorsMappings(CorsRegistry registry) {
-    registry.addMapping("/**")
-            .allowedOriginPatterns("*")
-            .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
-            .allowedHeaders("*")
-            .allowCredentials(true);
-}
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**") // Áp dụng cho TẤT CẢ các API
+                // Cho phép 2 Frontend
+                .allowedOrigins("http://localhost:8081", "http://localhost:8083", "http://192.168.1.7:8083")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(true);
+    }
 }

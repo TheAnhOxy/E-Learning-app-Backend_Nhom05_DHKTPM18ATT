@@ -2,6 +2,7 @@ package com.elearning.service;
 
 import com.elearning.modal.dto.request.ReviewRequestDTO;
 import com.elearning.modal.dto.response.ReviewResponseDTO;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -13,4 +14,6 @@ public interface ReviewService {
     List<ReviewResponseDTO> getReviewsByCourseId(Integer courseId);
 
     ReviewResponseDTO getMyReviewForCourse(Integer courseId, Integer userId);
+
+    Page<ReviewResponseDTO> getAllReviewByCourseId(Integer courseId, int page, int limit);
 }

@@ -64,6 +64,29 @@ public class CourseConverter {
             dto.setCategoryName(entity.getCategory().getName());
         }
 
+        dto.setRatingAvg(calculateAverageRating(entity));
+        dto.setRatingCount(entity.getReviews() != null ? entity.getReviews().size() : 0);
+        dto.setLessonCount(calculateLessonCount(entity));
+
         return dto;
+    }
+
+    public Double calculateAverageRating(Course course) {
+        if (course.getReviews() == null || course.getReviews().isEmpty()) {
+            return 5.0;
+        }
+        double sum = course.getReviews().stream()
+                .mapToDouble(review -> review.getRating())
+                .sum();
+        return sum / course.getReviews().size();
+    }
+
+    public Integer calculateLessonCount(Course course) {
+        if (course.getSections() == null || course.getSections().isEmpty()) {
+            return 0;
+        }
+        return course.getSections().stream()
+                .mapToInt(section -> section.getLessons() != null ? section.getLessons().size() : 0)
+                .sum();
     }
 }

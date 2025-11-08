@@ -15,4 +15,6 @@ public interface ReviewRepository extends JpaRepository<Review, Integer> {
     List<Review> findAllByCourseIdOrderByCreatedAtDesc(Integer courseId);
 
     Optional<Review> findByUserIdAndCourseId(Integer userId, Integer courseId);
+
+    Page<Review> findAllByCourse_IdOrderByCreatedAtDesc(Integer courseId, Pageable pageable);
 }

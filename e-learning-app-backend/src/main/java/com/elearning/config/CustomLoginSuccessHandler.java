@@ -20,7 +20,7 @@ public class CustomLoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
     private final RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
 
-    private final String STUDENT_URL = "http://localhost:3000/";
+    private final String STUDENT_URL = "http://localhost:8083/";
     private final String DASHBOARD_URL = "http://localhost:8081/admin/courses";
 
     @Override

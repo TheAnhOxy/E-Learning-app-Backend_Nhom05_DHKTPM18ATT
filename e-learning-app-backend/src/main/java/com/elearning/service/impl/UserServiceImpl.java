@@ -1,6 +1,8 @@
 package com.elearning.service.impl;
 
 import com.elearning.converter.UserConverter;
+import com.elearning.entity.User;
+import com.elearning.enums.UserRole;
 
 import com.elearning.entity.*;
 import com.elearning.enums.UserRole;
@@ -8,18 +10,18 @@ import com.elearning.exception.ConflictException;
 import com.elearning.exception.ForBiddenException;
 import com.elearning.exception.ResourceNotFoundException;
 import com.elearning.modal.dto.request.NotificationRequestDTO;
+import com.elearning.modal.dto.request.RegisterRequestDTO;
 import com.elearning.modal.dto.request.StudentUpdateRequestDTO;
 import com.elearning.modal.dto.request.UserRequestDTO;
 import com.elearning.modal.dto.response.CourseBriefResponseDTO;
 import com.elearning.modal.dto.response.StudentDetailResponseDTO;
 import com.elearning.modal.dto.response.StudentResponseDTO;
+import com.elearning.modal.dto.response.UserResponseDTO;
 import com.elearning.modal.dto.search.StudentSearchRequest;
 import com.elearning.repository.*;
 import com.elearning.service.NotificationService;
 import com.elearning.service.UserService;
 import com.elearning.service.CustomUserDetails;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +52,8 @@ public class UserServiceImpl implements UserService {
     private final EnrollmentRepository enrollmentRepository;
     private final QuizAttemptRepository quizAttemptRepository;
     private final CertificateRepository certificateRepository;
+    private final PasswordEncoder passwordEncoder;
+
 
     @Override
     @Transactional(readOnly = true)
@@ -57,6 +61,25 @@ public class UserServiceImpl implements UserService {
         log.debug("Đang tìm User entity với ID: {}", id);
         return userRepository.findById(id)
                 .orElseThrow();
+    }
+
+    //----------------- Additional Methods ----------------//
+
+    @Override
+    public List<UserResponseDTO> getTopInstructors() {
+        log.info("Đang lấy top instructors...");
+        List<User> instructors = userRepository.findTop15ByRoleOrderByIdAsc(UserRole.instructor);
+        log.info("Đã lấy {} instructors.", instructors.size());
+        return instructors.stream()
+                .map(userConverter::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public UserResponseDTO getTeacherById(Integer id) {
+        return userRepository.findByIdAndRole(id, UserRole.instructor)
+                .map(userConverter::toDTO)
+                .orElseThrow(() -> new ResourceNotFoundException("Instructor not found with id: " + id));
     }
 
     @Override
@@ -260,5 +283,25 @@ public class UserServiceImpl implements UserService {
         }
         notificationService.sendNotification(user, dto.getTitle(), dto.getMessage());
         log.info("Đã gửi thông báo thành công.");
+    }
+
+    @Override
+    public User registerStudent(RegisterRequestDTO request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new IllegalArgumentException("Email đã tồn tại");
+        }
+
+        User user = new User();
+        user.setUsername(request.getUsername());
+        user.setFullName(request.getFullName());
+        user.setEmail(request.getEmail());
+
+        // Mã hóa mật khẩu
+        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+
+        user.setRole(UserRole.student); // mặc định là student
+        user.setAvatarUrl(request.getAvatarUrl() != null ? request.getAvatarUrl() : "https://via.placeholder.com/50");
+
+        return userRepository.save(user);
     }
 }

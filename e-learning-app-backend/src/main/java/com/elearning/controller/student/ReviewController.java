@@ -1,7 +1,4 @@
 package com.elearning.controller.student;
-
-
-
 import com.elearning.modal.dto.request.ReviewRequestDTO;
 import com.elearning.modal.dto.response.ApiResponse;
 import com.elearning.modal.dto.response.ReviewResponseDTO;
@@ -10,12 +7,14 @@ import com.elearning.service.ReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.List;
 
 @RestController
@@ -116,4 +115,72 @@ public class ReviewController {
                 .build();
         return ResponseEntity.ok(response);
     }
+
+    // ---------------------------------------------------
+    @GetMapping("/by-course")
+    public ResponseEntity<?> getAllReviewByCourseId(
+            @RequestParam("course_id") Integer categoryId,
+            @RequestParam(value = "_page", defaultValue = "1") int page,
+            @RequestParam(value = "_limit", defaultValue = "6") int limit) {
+        try {
+            Page<ReviewResponseDTO> reviewPage = reviewService.getAllReviewByCourseId(categoryId, page, limit);
+            if (reviewPage.isEmpty()) {
+                return ResponseEntity.ok("Không có đánh giá nào trong khóa học này.");
+            }
+            return ResponseEntity.ok(Map.of(
+                    "reviews", reviewPage.getContent(),
+                    "total", reviewPage.getTotalElements(),
+                    "page", page,
+                    "limit", limit
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Đã xảy ra lỗi khi lấy đánh giá theo khóa học: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/add")
+//    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<?> addReview(@Valid @RequestBody ReviewRequestDTO reviewRequestDTO,
+                                       @RequestParam ("user_id") Integer userId) {
+        try {
+            ReviewResponseDTO createdReview = reviewService.createReview(reviewRequestDTO, userId);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdReview);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Đã xảy ra lỗi khi thêm đánh giá: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/edit/{reviewId}")
+//    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<?> editReview(
+            @PathVariable Integer reviewId,
+            @Valid @RequestBody ReviewRequestDTO reviewRequestDTO,
+            @RequestParam ("user_id") Integer userId) {
+        try {
+            ReviewResponseDTO updatedReview = reviewService.updateReview(reviewId, reviewRequestDTO, userId);
+            return ResponseEntity.ok(updatedReview);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Đã xảy ra lỗi khi cập nhật đánh giá: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/my-review-alt/{courseId}")
+//    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<?> getMyReviewAlt(
+            @PathVariable Integer courseId,
+            @RequestParam ("user_id") Integer userId
+    ) {
+        try {
+            ReviewResponseDTO reviewData = reviewService.getMyReviewForCourse(courseId, userId);
+            return ResponseEntity.ok(reviewData);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Đã xảy ra lỗi khi lấy đánh giá của bạn: " + e.getMessage());
+        }
+    }
+
+
 }

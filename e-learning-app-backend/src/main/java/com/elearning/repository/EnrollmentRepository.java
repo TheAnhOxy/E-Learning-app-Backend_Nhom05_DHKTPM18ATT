@@ -1,10 +1,9 @@
 package com.elearning.repository;
 
 import com.elearning.entity.Enrollment;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param; // <-- Thêm import
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -12,6 +11,9 @@ import java.util.Optional;
 
 @Repository
 public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer> {
+
+    boolean existsByUser_IdAndCourse_Id(Integer userId, Integer courseId);
+
     boolean existsByUserIdAndCourseId(Integer userId, Integer courseId);
 
     Enrollment findByOrderId(Integer orderId);
@@ -33,4 +35,6 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer>
             "AND e.course.instructor.id = :instructorId")
     boolean isStudentEnrolledInInstructorCourses(@Param("studentId") Integer studentId,
                                                  @Param("instructorId") Integer instructorId);
+
+    Optional<Enrollment> findByUserIdAndCourseId(Integer userId, Integer courseId);
 }

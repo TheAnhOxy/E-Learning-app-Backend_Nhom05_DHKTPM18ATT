@@ -59,7 +59,8 @@ public class AuthController {
                 userDetails.getId(),
                 userDetails.getUsername(), // Đây là email
                 userDetails.getFullName(),
-                userDetails.getRole().name()
+                userDetails.getRole().name(),
+                userDetails.getAvatarUrl()
         );
 
         ApiResponse response = ApiResponse.builder()
@@ -80,7 +81,8 @@ public class AuthController {
                 userDetails.getId(),
                 userDetails.getUsername(),
                 userDetails.getFullName(),
-                userDetails.getRole().name()
+                userDetails.getRole().name(),
+                userDetails.getAvatarUrl()
         );
         ApiResponse response = ApiResponse.builder()
                 .status(HttpStatus.OK.value())

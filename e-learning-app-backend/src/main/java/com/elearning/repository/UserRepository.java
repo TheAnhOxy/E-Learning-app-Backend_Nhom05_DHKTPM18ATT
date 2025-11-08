@@ -2,7 +2,6 @@ package com.elearning.repository;
 
 import com.elearning.entity.User;
 import com.elearning.enums.UserRole;
-import com.elearning.modal.dto.response.TimeSeriesDataDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -14,7 +13,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+
 public interface UserRepository extends JpaRepository<User, Integer> {
+    // Tìm danh sách Top 15 Teachers đầu tiên
+    List<User> findTop15ByRoleOrderByIdAsc(UserRole role);
+    Optional<User> findByIdAndRole(Integer id, UserRole userRole);
+
     Page<User> findAll(Specification<User> spec, Pageable pageable);
 //    @Query("SELECT CAST(u.createdAt AS DATE), COUNT(u.id) " +
 //            "FROM User u " +

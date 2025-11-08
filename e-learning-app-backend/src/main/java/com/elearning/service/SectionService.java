@@ -11,4 +11,7 @@ public interface SectionService {
     void deleteSection(Integer id);
     SectionResponseDTO getSectionById(Integer id);
     List<SectionResponseDTO> getSectionsByCourseId(Integer courseId);
+
+    // ------------------ Additional Methods ----------------//
+    List<SectionResponseDTO> getSectionsByCourse(Integer courseId);
 }
