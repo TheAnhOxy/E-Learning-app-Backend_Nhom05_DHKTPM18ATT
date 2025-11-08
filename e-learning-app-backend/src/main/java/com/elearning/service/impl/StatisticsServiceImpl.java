@@ -48,15 +48,22 @@ public class StatisticsServiceImpl implements StatisticsService {
                     .totalOrders(totalOrders)
                     .build();
         } else {
-            log.warn("Đang trả về thống kê giả lập cho Instructor.");
+            log.info("Lấy thống kê thật cho Instructor ID: {}", userId);
+
+            BigDecimal totalRevenue = transactionRepository.findTotalRevenueByInstructor(userId);
+            Long totalStudents = userRepository.countStudentsByInstructor(userId);
+            Long totalCourses = courseRepository.countByInstructorId(userId);
+            Long totalOrders = orderRepository.countByInstructorId(userId);
+
             return DashboardStatsDTO.builder()
-                    .totalRevenue(new BigDecimal("15000000"))
-                    .totalStudents(150L)
-                    .totalCourses(5L)
-                    .totalOrders(80L)
+                    .totalRevenue(totalRevenue != null ? totalRevenue : BigDecimal.ZERO)
+                    .totalStudents(totalStudents)
+                    .totalCourses(totalCourses)
+                    .totalOrders(totalOrders)
                     .build();
         }
-    }
+        }
+
 
     @Override
     public List<TimeSeriesDataDTO> getRevenueChartData(LocalDate startDate, LocalDate endDate, Integer instructorId) {
@@ -64,19 +71,23 @@ public class StatisticsServiceImpl implements StatisticsService {
         LocalDateTime startDateTime = startDate.atStartOfDay();
         LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);
 
+        List<Object[]> rawData;
         if (instructorId != null) {
-            log.warn("Đang trả về dữ liệu doanh thu giả lập cho Instructor.");
-            return List.of();
+            // --- Logic cho INSTRUCTOR (ĐÃ SỬA) ---
+            log.debug("Lấy doanh thu cho Instructor ID: {}", instructorId);
+            rawData = transactionRepository.getRevenueStatsByDateRangeAndInstructor(startDateTime, endDateTime, instructorId);
         } else {
-            List<Object[]> rawData = transactionRepository.getRevenueStatsByDateRange(startDateTime, endDateTime);
-
-            return rawData.stream()
-                    .map(row -> new TimeSeriesDataDTO(
-                            (LocalDate) row[0],
-                            (BigDecimal) row[1]
-                    ))
-                    .collect(Collectors.toList());
+            // --- Logic cho ADMIN ---
+            log.debug("Lấy doanh thu cho Admin");
+            rawData = transactionRepository.getRevenueStatsByDateRange(startDateTime, endDateTime);
         }
+
+        return rawData.stream()
+                .map(row -> new TimeSeriesDataDTO(
+                        ((java.sql.Date) row[0]).toLocalDate(), // Sửa: Dùng java.sql.Date
+                        (BigDecimal) row[1]
+                ))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -89,7 +100,7 @@ public class StatisticsServiceImpl implements StatisticsService {
 
         return rawData.stream()
                 .map(row -> new TimeSeriesDataDTO(
-                        (LocalDate) row[0], // [00] là CAST(u.createdAt AS DATE)
+                        ((java.sql.Date) row[0]).toLocalDate(), // Sửa: Dùng java.sql.Date
                         (BigDecimal) row[1]
                 ))
                 .collect(Collectors.toList());
@@ -99,10 +110,21 @@ public class StatisticsServiceImpl implements StatisticsService {
     public List<TopCourseResponseDTO> getTopCourses(String criteria, int limit, Integer instructorId) {
         log.info("Lấy top {} khóa học theo: {}", limit, criteria);
         Pageable pageable = PageRequest.of(0, limit);
+
+        // --- Logic cho INSTRUCTOR (ĐÃ SỬA) ---
         if ("revenue".equalsIgnoreCase(criteria)) {
-            return courseRepository.findTopCoursesByRevenue(pageable);
+            if (instructorId != null) {
+                return courseRepository.findTopCoursesByRevenueAndInstructor(instructorId, pageable);
+            } else {
+                return courseRepository.findTopCoursesByRevenue(pageable);
+            }
         } else {
-            return courseRepository.findTopCoursesByEnrollment(pageable);
+            if (instructorId != null) {
+                return courseRepository.findTopCoursesByEnrollmentAndInstructor(instructorId, pageable);
+            } else {
+                return courseRepository.findTopCoursesByEnrollment(pageable);
+            }
         }
     }
+
 }

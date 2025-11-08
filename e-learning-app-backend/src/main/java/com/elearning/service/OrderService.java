@@ -15,6 +15,9 @@ public interface OrderService {
     OrderDetailResponseDTO getMyOrderDetails(Integer orderId, Integer userId);
     OrderDetailResponseDTO getOrderDetailsById(Integer orderId);
     Page<OrderResponseDTO> searchOrders(OrderSearchRequest searchRequest, Pageable pageable);
+    void markOrderAsCompleted(Integer orderId);
+
+    void deleteOrder(Integer orderId);
 
     PendingOrderCheckResponse checkPendingOrder(Integer courseId, Integer userId);
 

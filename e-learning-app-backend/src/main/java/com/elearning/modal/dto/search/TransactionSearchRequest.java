@@ -9,6 +9,7 @@ import java.time.LocalDate;
 @Data
 public class TransactionSearchRequest {
 
+    private String query;
     private Integer orderId;
     private Integer userId;
     private String transactionCode;

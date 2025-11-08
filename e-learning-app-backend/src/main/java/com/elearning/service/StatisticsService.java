@@ -16,6 +16,5 @@ public interface StatisticsService {
     List<TimeSeriesDataDTO> getRevenueChartData(LocalDate startDate, LocalDate endDate, Integer instructorId);
     List<TimeSeriesDataDTO> getNewStudentsChartData(LocalDate startDate, LocalDate endDate);
 
-
     List<TopCourseResponseDTO> getTopCourses(String criteria, int limit, Integer instructorId);
 }

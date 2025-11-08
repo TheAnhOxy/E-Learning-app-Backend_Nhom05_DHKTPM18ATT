@@ -3,6 +3,7 @@ package com.elearning.controller.admin;
 
 import com.elearning.modal.dto.request.NotificationRequestDTO;
 import com.elearning.modal.dto.request.StudentUpdateRequestDTO;
+import com.elearning.modal.dto.request.UserRequestDTO;
 import com.elearning.modal.dto.response.ApiResponse;
 import com.elearning.modal.dto.search.StudentSearchRequest;
 import com.elearning.service.CustomUserDetails;
@@ -22,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/admin/students")
 @RequiredArgsConstructor
 @Slf4j
-//@PreAuthorize("hasAnyRole('ADMIN', 'INSTRUCTOR')")
+@PreAuthorize("hasAnyRole('ADMIN', 'INSTRUCTOR')")
 public class AdminStudentController {
 
     private final UserService userService;
@@ -42,6 +43,22 @@ public class AdminStudentController {
                 .data(studentPage)
                 .build();
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')") // Chỉ Admin
+    public ResponseEntity<ApiResponse> createUser(
+            @Valid @RequestBody UserRequestDTO userRequestDTO,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        log.info("Admin ID {} tạo user mới: {}", userDetails.getId(), userRequestDTO.getEmail());
+        var createdUser = userService.createUser(userRequestDTO, userDetails);
+        ApiResponse response = ApiResponse.builder()
+                .status(HttpStatus.CREATED.value())
+                .message("Tạo user thành công!")
+                .data(createdUser)
+                .build();
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @GetMapping("/{userId}")

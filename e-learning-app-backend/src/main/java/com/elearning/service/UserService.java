@@ -5,6 +5,7 @@ import com.elearning.entity.User;
 import com.elearning.modal.dto.request.NotificationRequestDTO;
 import com.elearning.modal.dto.request.RegisterRequestDTO;
 import com.elearning.modal.dto.request.StudentUpdateRequestDTO;
+import com.elearning.modal.dto.request.UserRequestDTO;
 import com.elearning.modal.dto.response.StudentDetailResponseDTO;
 import com.elearning.modal.dto.response.StudentResponseDTO;
 import com.elearning.modal.dto.response.UserResponseDTO;
@@ -32,4 +33,5 @@ public interface UserService {
     void sendNotificationToStudent(Integer userId, NotificationRequestDTO dto, CustomUserDetails currentUser);
 
     User registerStudent(RegisterRequestDTO request);
+    StudentResponseDTO createUser(UserRequestDTO dto, CustomUserDetails currentUser);
 }

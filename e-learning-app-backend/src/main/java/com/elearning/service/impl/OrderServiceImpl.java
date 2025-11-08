@@ -23,6 +23,7 @@ import com.elearning.repository.TransactionRepository;
 import com.elearning.service.OrderService;
 import com.elearning.service.PaymentService;
 import com.elearning.service.UserService;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -147,6 +148,52 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
+    public void markOrderAsCompleted(Integer orderId) {
+        log.info("Admin đánh dấu hoàn thành cho Order ID: {}", orderId);
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng"));
+
+        if (order.getStatus() == OrderStatus.completed) {
+            log.warn("Đơn hàng ID {} đã hoàn thành rồi.", orderId);
+            return;
+        }
+
+        order.setStatus(OrderStatus.completed);
+        orderRepository.save(order);
+
+
+        if (!enrollmentRepository.existsByUserIdAndCourseId(order.getUser().getId(), order.getCourse().getId())) {
+            createEnrollment(order.getUser(), order.getCourse(), order);
+        } else {
+            log.warn("Học viên ID {} đã được ghi danh vào khóa học ID {} từ trước.", order.getUser().getId(), order.getCourse().getId());
+        }
+    }
+
+    private void createEnrollment(User user, Course course, Order order) {
+        Enrollment enrollment = new Enrollment();
+        enrollment.setUser(user);
+        enrollment.setCourse(course);
+        enrollment.setOrder(order);
+        enrollment.setEnrollmentDate(LocalDateTime.now());
+        enrollmentRepository.save(enrollment);
+        log.info("Đã tạo ghi danh cho User ID {} vào Khóa học ID {}", user.getId(), course.getId());
+    }
+
+    @Override
+    @Transactional
+    public void deleteOrder(Integer orderId) {
+        log.info("Admin xóa Order ID: {}", orderId);
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng"));
+
+         if(order.getStatus() == OrderStatus.completed) {
+             throw new ConflictException("Không thể xóa đơn hàng đã hoàn thành.");
+         }
+        orderRepository.delete(order);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public OrderDetailResponseDTO getMyOrderDetails(Integer orderId, Integer userId) {
         log.info("Student ID {} xem chi tiết đơn hàng ID {}", userId, orderId);
@@ -159,7 +206,8 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public OrderDetailResponseDTO getOrderDetailsById(Integer orderId) {
         log.info("Admin/Teacher xem chi tiết đơn hàng ID {}", orderId);
-        Order order = orderRepository.findById(orderId)
+        // Dùng custom query để fetch User và Course
+        Order order = orderRepository.findOrderByIdWithDetails(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
         return getOrderDetails(order);
     }
@@ -169,20 +217,79 @@ public class OrderServiceImpl implements OrderService {
         List<TransactionResponseDTO> transactionHistory = transactions.stream()
                 .map(transactionConverter::toDTO)
                 .collect(Collectors.toList());
+        User user = order.getUser();
+        Course course = order.getCourse();
 
-        return orderConverter.toDetailDTO(order, transactionHistory);
+        // Xây dựng DTO chi tiết
+        return OrderDetailResponseDTO.builder()
+                .id(order.getId())
+                .amount(order.getAmount())
+                .status(order.getStatus())
+                .createdAt(order.getCreatedAt())
+                .userId(user.getId())
+                .userName(user.getFullName())
+                .userEmail(user.getEmail())
+                .userAvatarUrl(user.getAvatarUrl())
+                .courseId(course.getId())
+                .courseTitle(course.getTitle())
+                .courseThumbnailUrl(course.getThumbnailUrl())
+                .transactions(transactionHistory)
+                .build();
     }
+
+//    private OrderDetailResponseDTO getOrderDetails(Order order) {
+//        List<Transaction> transactions = transactionRepository.findAllByOrderIdOrderByCreatedAtDesc(order.getId());
+//        List<TransactionResponseDTO> transactionHistory = transactions.stream()
+//                .map(transactionConverter::toDTO)
+//                .collect(Collectors.toList());
+//
+//        return orderConverter.toDetailDTO(order, transactionHistory);
+//    }
 
     @Override
     @Transactional(readOnly = true)
     public Page<OrderResponseDTO> searchOrders(OrderSearchRequest searchRequest, Pageable pageable) {
-        log.info("Admin tìm kiếm đơn hàng...");
-
+        log.info("Admin tìm kiếm đơn hàng với query: {}, status: {}, userId: {}, courseId: {}",
+                searchRequest.getQuery(), searchRequest.getStatus(), searchRequest.getUserId(), searchRequest.getCourseId());
         Specification<Order> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
+
+            // 1. Lọc theo Status (nếu có)
+            if (searchRequest.getStatus() != null) {
+                predicates.add(cb.equal(root.get("status"), searchRequest.getStatus()));
+            }
+
+            // 2. Lọc theo User ID (nếu có)
+            if (searchRequest.getUserId() != null) {
+                predicates.add(cb.equal(root.get("user").get("id"), searchRequest.getUserId()));
+            }
+
+            // 3. Lọc theo Course ID (nếu có)
+            if (searchRequest.getCourseId() != null) {
+                predicates.add(cb.equal(root.get("course").get("id"), searchRequest.getCourseId()));
+            }
+            if (StringUtils.hasText(searchRequest.getQuery())) {
+                String queryLower = "%" + searchRequest.getQuery().toLowerCase() + "%";
+
+                Predicate byUserName = cb.like(cb.lower(root.join("user").get("fullName")), queryLower);
+                Predicate byCourseName = cb.like(cb.lower(root.join("course").get("title")), queryLower);
+
+                Predicate byOrderId = cb.conjunction();
+                try {
+                    Integer queryId = Integer.parseInt(searchRequest.getQuery());
+                    byOrderId = cb.equal(root.get("id"), queryId);
+                } catch (NumberFormatException e) {
+                }
+
+                predicates.add(cb.or(byUserName, byCourseName, byOrderId));
+            }
+            if (query.getResultType() != Long.class && query.getResultType() != long.class) {
+                root.fetch("user", JoinType.LEFT);
+                root.fetch("course", JoinType.LEFT);
+            }
+
             return cb.and(predicates.toArray(new Predicate[0]));
         };
-
         Page<Order> orderPage = orderRepository.findAll(spec, pageable);
 
         return orderPage.map(orderConverter::toDTO);
