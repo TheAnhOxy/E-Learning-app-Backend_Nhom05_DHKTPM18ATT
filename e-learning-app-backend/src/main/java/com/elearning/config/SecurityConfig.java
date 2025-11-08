@@ -74,12 +74,10 @@ public class SecurityConfig {
                                 "/users/**",
                                 "/lessons/**",
                                 "/sections/**",
-                                "/progress/**",
                                 "/enrollments/**"
                         ).permitAll()
-                        .requestMatchers("/api/auth/**", "/users/register", "/courses/search").permitAll()
+                        .requestMatchers("/api/auth/**", "/users/register", "/courses/search", "/orders/**","/progress/**").permitAll()
                         .requestMatchers(
-                                "/orders/**",       // Tạo và xem đơn hàng
                                 "/reviews/**",      // Viết, sửa, xóa review của mình
                                 "/progress/**",      // Cập nhật tiến độ
                                 "/courses/**",
