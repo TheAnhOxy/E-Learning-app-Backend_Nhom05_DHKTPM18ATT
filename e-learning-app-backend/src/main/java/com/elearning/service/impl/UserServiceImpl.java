@@ -52,7 +52,6 @@ public class UserServiceImpl implements UserService {
     private final EnrollmentRepository enrollmentRepository;
     private final QuizAttemptRepository quizAttemptRepository;
     private final CertificateRepository certificateRepository;
-    private final PasswordEncoder passwordEncoder;
 
 
     @Override

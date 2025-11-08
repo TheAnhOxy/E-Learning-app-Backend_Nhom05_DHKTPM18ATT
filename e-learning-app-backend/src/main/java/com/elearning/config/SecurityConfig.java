@@ -77,7 +77,7 @@ public class SecurityConfig {
                                 "/progress/**",
                                 "/enrollments/**"
                         ).permitAll()
-                        .requestMatchers("/api/auth/**", "/users/register").permitAll()
+                        .requestMatchers("/api/auth/**", "/users/register", "/courses/search").permitAll()
                         .requestMatchers(
                                 "/orders/**",       // Tạo và xem đơn hàng
                                 "/reviews/**",      // Viết, sửa, xóa review của mình
