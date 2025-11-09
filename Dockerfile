@@ -1,10 +1,10 @@
-# Dùng image Java chính thức
-FROM openjdk:17-jdk-slim
+# SỬA DÒNG 2 – THAY 17 THÀNH 21
+FROM openjdk:21-jdk-slim
 
 # Tạo thư mục app
 WORKDIR /app
 
-# Copy file JAR (tên file JAR của bạn)
+# Copy file JAR (từ target/)
 COPY target/*.jar app.jar
 
 # Chạy ứng dụng
