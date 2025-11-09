@@ -1,3 +1,43 @@
+#server:
+#  port: 8080
+#
+#spring:
+#  application:
+#    name: E-learning-App
+#
+#  profiles:
+#    active: dev
+#
+#  jpa:
+#    hibernate:
+#      ddl-auto: none
+#    show-sql: true
+#    properties:
+#      hibernate:
+#        dialect: org.hibernate.dialect.MySQL8Dialect
+#        enable_lazy_load_no_trans: true
+#        format_sql: true
+#      hibernate.jdbc.lob.non_contextual_creation: true
+#
+#
+#  cloudinary:
+#    url: cloudinary://632641588972872:O1Ik4PlUtr5WZ6-1g6x_xbuLYdU@dwzjxsdli
+#
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: '*'
+#
+#logging:
+#  level:
+#    root: INFO
+#    web: INFO
+#    org.springframework.data.repository: DEBUG
+#
+#dev:
+#  nguyen: Nguyen-The-Anh
+
 server:
   port: 8080
 
@@ -5,23 +45,28 @@ spring:
   application:
     name: E-learning-App
 
-  profiles:
-    active: dev
+  # --- XÓA "profiles: active: dev" KHỎI ĐÂY ---
+  # Dòng này sẽ được đọc từ biến môi trường SPRING_PROFILES_ACTIVE trên Render
 
   jpa:
     hibernate:
-      ddl-auto: none
+      # ddl-auto sẽ được đọc từ biến môi trường
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
     show-sql: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
-        enable_lazy_load_no_trans: true
         format_sql: true
+        enable_lazy_load_no_trans: true
       hibernate.jdbc.lob.non_contextual_creation: true
 
-
-  cloudinary:
-    url: cloudinary://632641588972872:O1Ik4PlUtr5WZ6-1g6x_xbuLYdU@dwzjxsdli
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
 
 management:
   endpoints:
@@ -29,11 +74,12 @@ management:
       exposure:
         include: '*'
 
+# Đọc URL từ biến môi trường CLOUDINARY_URL
+cloudinary:
+  url: ${CLOUDINARY_URL}
+
 logging:
   level:
     root: INFO
     web: INFO
     org.springframework.data.repository: DEBUG
-
-dev:
-  nguyen: Nguyen-The-Anh
