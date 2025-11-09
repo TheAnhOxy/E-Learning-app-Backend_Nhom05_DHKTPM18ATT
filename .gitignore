@@ -1,8 +1,6 @@
 # ===============================
 # Build output
 # ===============================
-/target/
-!/src/**/target/  # giữ folder target trong src nếu cần (hiếm dùng)
 *.class
 *.jar
 *.war
