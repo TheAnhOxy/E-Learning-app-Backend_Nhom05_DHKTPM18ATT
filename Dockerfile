@@ -1,5 +1,4 @@
 # ----- Stage 1: Build ứng dụng (Tạo ra file .jar) -----
-# Sử dụng JDK để build dự án
 FROM eclipse-temurin:21-jdk AS build
 
 WORKDIR /app
@@ -9,6 +8,10 @@ COPY mvnw .
 COPY .mvn .mvn
 COPY pom.xml .
 COPY src src
+
+# === DÒNG FIX LỖI ===
+# Cấp quyền thực thi (execute) cho file mvnw
+RUN chmod +x ./mvnw
 
 # Chạy lệnh build Maven bên trong container
 # Bước này sẽ TẠO RA thư mục /app/target/*.jar
@@ -21,7 +24,6 @@ FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 
 # Chỉ sao chép tệp .jar đã được build từ Stage 1
-# Docker sẽ tìm tệp .jar trong /app/target/ của Stage 1
 COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8080
