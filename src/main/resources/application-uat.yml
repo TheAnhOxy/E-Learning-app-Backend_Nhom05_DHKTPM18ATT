@@ -1,9 +1,8 @@
 spring:
   datasource:
-    url: jdbc:mysql://127.0.0.1:3306/elearningdb
+    url: jdbc:mysql://127.0.0.1:3306/petshop
     username: root
     password: Theanh@123
-#    password: sapassword
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -34,11 +33,7 @@ management:
       exposure:
         include: '*'
 
-cloudinary:
-  url: cloudinary://632641588972872:O1Ik4PlUtr5WZ6-1g6x_xbuLYdU@dwzjxsdli
-
 logging:
   level:
     root: INFO
     org.springframework.data.repository: DEBUG
-
