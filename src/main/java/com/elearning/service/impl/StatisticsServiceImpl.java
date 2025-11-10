@@ -73,18 +73,16 @@ public class StatisticsServiceImpl implements StatisticsService {
 
         List<Object[]> rawData;
         if (instructorId != null) {
-            // --- Logic cho INSTRUCTOR (ĐÃ SỬA) ---
             log.debug("Lấy doanh thu cho Instructor ID: {}", instructorId);
             rawData = transactionRepository.getRevenueStatsByDateRangeAndInstructor(startDateTime, endDateTime, instructorId);
         } else {
-            // --- Logic cho ADMIN ---
             log.debug("Lấy doanh thu cho Admin");
             rawData = transactionRepository.getRevenueStatsByDateRange(startDateTime, endDateTime);
         }
 
         return rawData.stream()
                 .map(row -> new TimeSeriesDataDTO(
-                        ((java.sql.Date) row[0]).toLocalDate(), // Sửa: Dùng java.sql.Date
+                        ((java.sql.Date) row[0]).toLocalDate(),
                         (BigDecimal) row[1]
                 ))
                 .collect(Collectors.toList());
@@ -100,7 +98,7 @@ public class StatisticsServiceImpl implements StatisticsService {
 
         return rawData.stream()
                 .map(row -> new TimeSeriesDataDTO(
-                        ((java.sql.Date) row[0]).toLocalDate(), // Sửa: Dùng java.sql.Date
+                        ((java.sql.Date) row[0]).toLocalDate(),
                         (BigDecimal) row[1]
                 ))
                 .collect(Collectors.toList());
@@ -110,8 +108,6 @@ public class StatisticsServiceImpl implements StatisticsService {
     public List<TopCourseResponseDTO> getTopCourses(String criteria, int limit, Integer instructorId) {
         log.info("Lấy top {} khóa học theo: {}", limit, criteria);
         Pageable pageable = PageRequest.of(0, limit);
-
-        // --- Logic cho INSTRUCTOR (ĐÃ SỬA) ---
         if ("revenue".equalsIgnoreCase(criteria)) {
             if (instructorId != null) {
                 return courseRepository.findTopCoursesByRevenueAndInstructor(instructorId, pageable);

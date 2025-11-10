@@ -75,7 +75,7 @@ public class CourseServiceImpl implements CourseService {
         dto.setCategoryId(course.getCategory() != null ? course.getCategory().getId() : null);
         dto.setCategoryName(course.getCategory() != null ? course.getCategory().getName() : null);
 
-        // ✅ Sections -> Lessons -> Quizzes -> Questions -> Answers
+        //  Sections -> Lessons -> Quizzes -> Questions -> Answers
         List<SectionResponseDTO> sectionDTOs = new ArrayList<>();
         if (course.getSections() != null && !course.getSections().isEmpty()) {
             List<Section> sections = new ArrayList<>(course.getSections());
@@ -106,7 +106,7 @@ public class CourseServiceImpl implements CourseService {
                         lessonDTO.setIsFree(lesson.getIsFree());
                         lessonDTO.setOrderIndex(lesson.getOrderIndex());
 
-                        // ✅ Map quizzes
+                        //  Map quizzes
                         if (lesson.getQuizzes() != null && !lesson.getQuizzes().isEmpty()) {
                             List<QuizResponseDTO> quizDTOs = lesson.getQuizzes().stream().map(quiz -> {
                                 QuizResponseDTO quizDTO = new QuizResponseDTO();
@@ -115,7 +115,7 @@ public class CourseServiceImpl implements CourseService {
                                 quizDTO.setLessonId(lesson.getId());
                                 quizDTO.setCreatedAt(quiz.getCreatedAt());
 
-                                // ✅ Map questions
+                                //  Map questions
                                 if (quiz.getQuestions() != null && !quiz.getQuestions().isEmpty()) {
                                     List<QuestionResponseDTO> questionDTOs = quiz.getQuestions().stream().map(q -> {
                                         QuestionResponseDTO questionDTO = new QuestionResponseDTO();
@@ -123,7 +123,7 @@ public class CourseServiceImpl implements CourseService {
                                         questionDTO.setQuestionText(q.getQuestionText());
                                         questionDTO.setQuestionType(q.getQuestionType());
 
-                                        // ✅ Map answers
+                                        //  Map answers
                                         if (q.getAnswers() != null && !q.getAnswers().isEmpty()) {
                                             List<AnswerResponseDTO> answerDTOs = q.getAnswers().stream().map(a ->
                                                     new AnswerResponseDTO(

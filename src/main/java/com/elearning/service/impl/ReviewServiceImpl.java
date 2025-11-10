@@ -49,7 +49,6 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         if (!enrollmentRepository.existsByUserIdAndCourseId(userId, dto.getCourseId())) {
-            // Sửa lại tên Exception nếu bạn dùng ForbiddenException
             throw new ForBiddenException("Bạn phải tham gia khóa học trước khi đánh giá.");
         }
 
@@ -128,7 +127,6 @@ public class ReviewServiceImpl implements ReviewService {
         return reviewConverter.toDTO(review);
     }
 
-    // ---------------- Additional Methods ----------------//
 
     @Override
     public Page<ReviewResponseDTO> getAllReviewByCourseId(Integer courseId, int page, int limit) {

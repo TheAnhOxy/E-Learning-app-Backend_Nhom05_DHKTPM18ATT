@@ -33,7 +33,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
     @Query("SELECT t FROM Transaction t JOIN FETCH t.order o JOIN FETCH o.user JOIN FETCH o.course WHERE t.order.id = :orderId ORDER BY t.createdAt DESC")
     List<Transaction> findAllByOrderIdOrderByCreatedAtDesc(Integer orderId);
 
-    // --- Query Gốc (Cho Admin) ---
     @Query("SELECT SUM(t.amount) FROM Transaction t WHERE t.status = 'success' AND t.amount > 0")
     BigDecimal findTotalRevenue();
 

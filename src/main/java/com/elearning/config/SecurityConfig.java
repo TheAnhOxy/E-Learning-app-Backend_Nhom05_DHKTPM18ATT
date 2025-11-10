@@ -62,8 +62,8 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/categories/**",
-                                "/courses", // Lấy ds khóa học
-                                "/courses/popular", // Lấy top khóa học
+                                "/courses",
+                                "/courses/popular",
                                 "/courses/recommended",
                                 "/courses/inspiring",
                                 "/courses/{id}",
@@ -127,7 +127,7 @@ public class SecurityConfig {
 //            }))
 //            .csrf(AbstractHttpConfigurer::disable)
 //            .authorizeHttpRequests(auth -> auth
-//                    .requestMatchers("/**").permitAll() // ✅ Cho phép tất cả request để test
+//                    .requestMatchers("/**").permitAll()
 //            )
 //            .formLogin(AbstractHttpConfigurer::disable)
 //            .logout(AbstractHttpConfigurer::disable);

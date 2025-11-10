@@ -45,19 +45,14 @@ public class AuthController {
                 )
         );
 
-        // --- Tạo Session ---
         SecurityContextHolder.getContext().setAuthentication(authentication);
         HttpSession session = request.getSession(true);
         session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, SecurityContextHolder.getContext());
-        // ---------------------
-
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         log.info("Đăng nhập thành công cho User ID: {}, Role: {}", userDetails.getId(), userDetails.getRole());
-
-        // Trả về thông tin user (Không trả về token)
         AuthResponse authResponse = new AuthResponse(
                 userDetails.getId(),
-                userDetails.getUsername(), // Đây là email
+                userDetails.getUsername(),
                 userDetails.getFullName(),
                 userDetails.getRole().name(),
                 userDetails.getAvatarUrl()
@@ -75,7 +70,6 @@ public class AuthController {
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse> getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        // API này dùng để kiểm tra session
         log.info("User ID {} đang kiểm tra session (/me)", userDetails.getId());
         AuthResponse authResponse = new AuthResponse(
                 userDetails.getId(),
@@ -97,9 +91,9 @@ public class AuthController {
         log.info("User yêu cầu đăng xuất (Session)");
         HttpSession session = request.getSession(false);
         if (session != null) {
-            session.invalidate(); // Hủy session
+            session.invalidate();
         }
-        SecurityContextHolder.clearContext(); // Xóa context
+        SecurityContextHolder.clearContext();
 
         ApiResponse response = ApiResponse.builder()
                 .status(HttpStatus.OK.value())

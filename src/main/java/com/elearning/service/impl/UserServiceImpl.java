@@ -62,7 +62,6 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow();
     }
 
-    //----------------- Additional Methods ----------------//
 
     @Override
     public List<UserResponseDTO> getTopInstructors() {
@@ -164,10 +163,7 @@ public class UserServiceImpl implements UserService {
         List<QuizAttempt> quizAttempts = quizAttemptRepository.findAllWithQuizByUserId(userId);
         List<Certificate> certificates = certificateRepository.findAllWithCourseByUserId(userId);
 
-        // 2. Map DTO (Giờ đây DTO sẽ có các List)
         StudentDetailResponseDTO dto = userConverter.toStudentDetailDTO(user, enrollments, quizAttempts, certificates);
-
-        // 3. Bổ sung thống kê (nếu là Instructor)
         if (user.getRole() == UserRole.instructor) {
             log.info("Lấy thống kê cho Giảng viên ID: {}", userId);
             BigDecimal totalRevenue = transactionRepository.findTotalRevenueByInstructor(userId);
@@ -199,8 +195,6 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public StudentResponseDTO createUser(UserRequestDTO dto, CustomUserDetails currentUser) {
         log.info("User ID {} (Role: {}) đang tạo user mới với email: {}", currentUser.getId(), currentUser.getRole(), dto.getEmail());
-
-        // 1. Chỉ Admin mới được tạo user
         if (currentUser.getRole() != UserRole.admin) {
             throw new ForBiddenException("Chỉ Admin mới có quyền tạo tài khoản.");
         }
@@ -211,14 +205,12 @@ public class UserServiceImpl implements UserService {
         if (StringUtils.hasText(dto.getUsername()) && userRepository.existsByUsername(dto.getUsername())) {
             throw new ConflictException("Username đã tồn tại.");
         }
-
-        // 3. Tạo User entity
         User user = new User();
         user.setFullName(dto.getFullName());
         user.setEmail(dto.getEmail());
         user.setUsername(StringUtils.hasText(dto.getUsername()) ? dto.getUsername() : null);
         user.setAvatarUrl(dto.getAvatarUrl());
-        user.setRole(dto.getRole()); // Vai trò (student, instructor, admin)
+        user.setRole(dto.getRole());
         user.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
 
         User savedUser = userRepository.save(user);
@@ -289,16 +281,13 @@ public class UserServiceImpl implements UserService {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("Email đã tồn tại");
         }
-
         User user = new User();
         user.setUsername(request.getUsername());
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail());
-
-        // Mã hóa mật khẩu
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
 
-        user.setRole(UserRole.student); // mặc định là student
+        user.setRole(UserRole.student);
         user.setAvatarUrl(request.getAvatarUrl() != null ? request.getAvatarUrl() : "https://via.placeholder.com/50");
 
         return userRepository.save(user);

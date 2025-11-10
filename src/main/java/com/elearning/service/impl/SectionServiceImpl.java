@@ -93,7 +93,6 @@ public class SectionServiceImpl implements SectionService {
         return sectionConverter.toDTO(section);
     }
 
-    // ------------------ Additional Methods ----------------//
     @Override
     public List<SectionResponseDTO> getSectionsByCourse(Integer courseId) {
         log.info("Đang lấy danh sách chương cho khóa học ID: {}", courseId);

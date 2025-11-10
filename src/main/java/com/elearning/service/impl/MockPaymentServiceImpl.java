@@ -30,13 +30,13 @@ public class MockPaymentServiceImpl implements PaymentService {
 
         log.info("Đã tạo Mock QR Code Data: {}", mockPaymentUrl);
 
-        // Front-end sẽ dùng 'qrCodeData' (là URL) để render QR code
+        // Front-end sẽ dùng 'qrCodeData' ( URL) để render QR code
         return CreateOrderResponseDTO.builder()
                 .orderId(order.getId())
                 .transactionId(transaction.getId())
                 .amount(order.getAmount())
                 .orderStatus(order.getStatus())
-                .qrCodeData(mockPaymentUrl) // Dữ liệu cho React Native render QR
+                .qrCodeData(mockPaymentUrl) // data cho React Native render QR
                 .qrCodeImageUrl(null)
                 .build();
     }
@@ -45,13 +45,12 @@ public class MockPaymentServiceImpl implements PaymentService {
     public Transaction createRefund(Transaction originalTransaction, String reason) {
         log.info("Đang giả lập hoàn tiền cho Transaction ID: {} với lý do: {}", originalTransaction.getId(), reason);
 
-        // (Trong thực tế: Gọi API của cổng thanh toán ở đây)
-        // Tạo một giao dịch ÂM (hoàn tiền) mới
+        // (Nếu true: Gọi API của cổng thanh toán ở đây)
         Transaction refundTransaction = new Transaction();
         refundTransaction.setOrder(originalTransaction.getOrder());
         refundTransaction.setAmount(-originalTransaction.getAmount()); // Số tiền âm
-        refundTransaction.setStatus(TransactionStatus.success); // Hoàn tiền thành công
-        refundTransaction.setPaymentMethod("refund"); // Phương thức là 'hoàn tiền'
+        refundTransaction.setStatus(TransactionStatus.success);
+        refundTransaction.setPaymentMethod("refund");
         refundTransaction.setTransactionCode("REFUND_" + originalTransaction.getId() + "_" + UUID.randomUUID().toString().substring(0, 8));
 
         log.info("Đã tạo giao dịch hoàn tiền mới, Transaction Code: {}", refundTransaction.getTransactionCode());

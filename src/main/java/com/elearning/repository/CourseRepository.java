@@ -19,18 +19,15 @@ public interface CourseRepository extends JpaRepository<Course, Integer>, JpaSpe
     // Khóa học được đề xuất
     List<Course> findTop10ByPriceGreaterThanOrderByIdAsc(int price);
 
-    // Khóa học phổ biến, join với bảng đăng ký
+
     @Query("SELECT c FROM Course c JOIN c.enrollments e GROUP BY c.id ORDER BY COUNT(e.id) DESC")
     List<Course> findTop10ByEnrollmentsCountDesc();
 
-    // Khóa học truyền cảm hứng, ví dụ: khóa học có đánh giá cao nhất, join với bảng đánh giá
     @Query("SELECT c FROM Course c JOIN c.reviews r GROUP BY c.id ORDER BY AVG(r.rating) DESC")
     List<Course> findTop10ByAverageRatingDesc();
 
     Page<Course> findByCategory_Id(Integer categoryId, Pageable pageable);
     Page<Course> findByInstructor_Id(Integer instructorId, Pageable pageable);
-
-    // Lấy khóa học của một học viên cụ thể
     @Query("SELECT c FROM Course c JOIN c.enrollments e WHERE e.user.id = :studentId")
     Page<Course> findCoursesByStudentId(Integer studentId, Pageable pageable);
 
